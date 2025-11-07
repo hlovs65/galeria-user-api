@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: galeria-user-api
+    env: php
+    buildCommand: composer install
+    startCommand: php -S 0.0.0.0:$PORT -t /
+    plan: free
+    repo: https://github.com/hlovs65/galeria-user-api
+    branch: main
