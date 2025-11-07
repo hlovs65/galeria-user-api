@@ -7,18 +7,7 @@ ob_start(); // Iniciar el almacenamiento en búfer de salida
 // ----------------------------------------------------
 // 1. Configuración Inicial y CORS (Necesario para React)
 // ----------------------------------------------------
-header("Access-Control-Allow-Origin: http://localhost:5173"); // Permitir solicitudes desde el frontend (ajustar según sea necesario)
-header("Access-Control-Allow-Methods: POST, OPTIONS"); // Permitir métodos POST y OPTIONS
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Permitir encabezados específicos
-header("Content-Type: application/json; charset=UTF-8");
-
-// ----------------------------------------------------
-// PASO 3: Manejar las peticiones OPTIONS (Pre-vuelo de CORS)
-// ----------------------------------------------------
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit;
-}
+require_once __DIR__ . '/../config/cors_setup.php';
 
 // ----------------------------------------------------
 // PASO 2: Incluir las funciones de mensajes JWT. Conexion a la base de datos y otras utilidades.

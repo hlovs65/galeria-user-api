@@ -7,18 +7,8 @@ ob_start(); // Iniciar el almacenamiento en búfer de salida
 // ----------------------------------------------------
 // Configuración Inicial y CORS (Necesario para React)
 // ----------------------------------------------------
-header("Access-Control-Allow-Origin: http://localhost:5173"); // Permitir solicitudes desde el frontend (ajustar según sea necesario)
-header("Access-Control-Allow-Credentials: true"); // Permitir el envío de cookies y credenciales
-header("Access-Control-Allow-Methods: POST, OPTIONS"); // Permitir métodos POST y OPTIONS
-header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Permitir encabezados específicos
-header("Content-Type: application/json; charset=UTF-8");
+require_once __DIR__ . '/../config/cors_setup.php';
 
-// Manejar las peticiones OPTIONS (Pre-vuelo de CORS)
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    if (ob_get_level()) { ob_end_clean(); } // Limpiar el búfer de salida si es necesario
-    exit;
-}
 
 // ----------------------------------------------------
 // PASO CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
