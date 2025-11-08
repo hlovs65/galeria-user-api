@@ -14,6 +14,9 @@ $allowed_origin = 'https://galeria-app-frontend.vercel.app';
 // Manejar la solicitud OPTIONS (preflight request)
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
+    // Devolvemos la limpieza del buffer. Esto elimina cualquier HTML de advertencia
+    // que se haya generado antes de las cabeceras CORS.
+    if (ob_get_level()) { ob_end_clean(); }
     exit();
 }
 ?>
