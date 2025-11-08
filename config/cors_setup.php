@@ -1,8 +1,26 @@
 <?php
 // Usamos el operador @ para suprimir errores si la cabecera ya se envió o falla. 
 // Define la URL de tu frontend de Vercel
+// Lista de orígenes permitidos
+$allowed_origins = [
+    'https://galeria-app-frontend.vercel.app', // Producción (Vercel)
+    'http://localhost',                        // Desarrollo (Localhost base)
+    'http://localhost:5173',                   // Desarrollo (si usas React/Vite en un puerto)
+    'http://127.0.0.1'                         // Alternativa para Localhost
+];
 
-$allowed_origin = 'https://galeria-app-frontend.vercel.app'; 
+// Obtener el origen de la solicitud actual
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+// Verificar si el origen solicitado está en nuestra lista de permitidos
+if (in_array($origin, $allowed_origins)) {
+    // Si el origen está permitido, se usa ese origen
+    $allowed_origin = $origin;
+} else {
+    // Si el origen no está en la lista (e.g., para peticiones directas), 
+    // puedes establecer un valor predeterminado seguro o el de producción
+    $allowed_origin = 'https://galeria-app-frontend.vercel.app';
+}
 
 // Establecer cabeceras CORS
 @header("Access-Control-Allow-Origin: $allowed_origin");
