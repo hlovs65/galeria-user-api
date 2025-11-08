@@ -48,6 +48,3 @@ define('MAIL_FROM_NAME', $_ENV['MAIL_FROM_NAME']);
 // URL base acceso frontend despues de envio de email
 // ===========================================
 define('BASE_URL_FRONTEND', $_ENV['BASE_URL_FRONTEND']);
-// Esto hará que MySQLi lance una excepción (Error) cuando un query falle.
-// Esto es mucho mejor que depender de 'if ($stmt === false)'
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
