@@ -1,0 +1,17 @@
+# Activa el módulo de reescritura de Apache
+RewriteEngine On
+
+# Este módulo permite que Apache modifique las cabeceras HTTP
+<IfModule mod_headers.c>
+    # Permite el acceso SOLO desde tu dominio de Vercel
+    Header set Access-Control-Allow-Origin "https://galeria-app-frontend.vercel.app"
+    
+    # Define los métodos permitidos (GET, POST, y OPTIONS para el pre-vuelo)
+    Header set Access-Control-Allow-Methods "GET, POST, OPTIONS"
+    
+    # Define las cabeceras que el navegador puede enviar
+    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    
+    # Permite el envío de cookies/credenciales
+    Header set Access-Control-Allow-Credentials "true"
+</IfModule>
