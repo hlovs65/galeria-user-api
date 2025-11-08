@@ -1,16 +1,13 @@
 <?php
 // db_connection.php
 
-// 1. Configuración de la conexión a la base de datos
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
-// 2. Crear conexión
+// 1. Crear conexión
 // Usamos MySQLi para una conexión orientada a objetos, es más moderna y segura que las funciones mysql_
 
 try {
     $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
 
-// 3. Verificar la conexión
+// 2. Verificar la conexión
 } catch (mysqli_sql_exception $e) {
     //Captura la excepcion lanzada por new mysqli()
     $errores = "Error de conexion a la base de datos: ". $e->getMessage();
