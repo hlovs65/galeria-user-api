@@ -164,6 +164,4 @@ try {
     if (isset($stmt)) { $stmt = null; }
     if (isset($conn)) { $conn = null; }
 }
-
-ob_end_flush(); // Enviar el contenido del búfer de salida y desactivar el almacenamiento en búfer
 ?>
