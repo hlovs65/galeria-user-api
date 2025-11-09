@@ -72,7 +72,7 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
  * Actualiza el estatus de un usuario en la base de datos a 0 (desconectado).
  * Actualiza el campo especificado de un usuario en la base de datos: correo_verificado o estado.
  *
- * @param mysqli $conn La conexión a la base de datos.
+ * @param PDO $conn La conexión a la base de datos.
  * @param int $userId El ID del usuario cuyo estatus se va a modificar.
  * @param string $columnName El campo que se va a actualizar (correo_verificado o estado).
  * @param int $newValue El nuevo valor del campo (0 o 1).
@@ -90,26 +90,29 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         error_log("update_user_field: Columna no permitida.");
         return false;
     }
+    
+    $stmt = null; // Inicializar la variable de la declaración
+    try {
 
-    // Preparar la consulta
-    $sql_query = "UPDATE usuarios SET `" . $columnName . "` = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql_query);
-    if (!$stmt) {
-        error_log("Error en la preparación de la consulta update_user_field: " . $conn->error);
+        // Preparar la consulta
+        $sql_query = "UPDATE usuarios SET `" . $columnName . "` = :newValue WHERE id = :userId";
+        $stmt = $conn->prepare($sql_query);
+
+        // Ejecutar la consulta
+        $stmt->execute(['newValue' => $newValue, 'userId' => $userId]);
+
+        // Verificar si se actualizó algún registro
+        if ($stmt->rowCount() > 0) {
+            return true;
+        } else {
+            error_log("update_user_field: No se actualizó ningún registro. Verifique el ID del usuario.");
+            return false;
+        }   
+    } catch (PDOException $e) {
+        error_log("Error de BD (PDO) en update_user_field: " . $e->getMessage());
         return false;
-    }
-
-    // Vincular el parámetro
-    $stmt->bind_param("ii", $newValue, $userId);
-
-    // Ejecutar la consulta
-    if ($stmt->execute()) {
-        $stmt->close();
-        return true;
-    } else {
-        error_log("Error al ejecutar la consulta update_user_field: " . $stmt->error);
-        $stmt->close();
-        return false;
+    } finally {
+        if (isset($stmt)) { $stmt = null; }
     }
 }
 

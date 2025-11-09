@@ -1,24 +1,24 @@
 <?php
 // db_connection.php
 
-// 1. Crear conexión
-// Usamos MySQLi para una conexión orientada a objetos, es más moderna y segura que las funciones mysql_
+// 1. Crear conexión usando PDO
 
 try {
-    $conn = new mysqli(DB_SERVER, DB_USERNAME, DB_PASSWORD, DB_NAME);
+    //Usar PDO (PHP Data Objects)
+    $dsn = 'mysql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Lanzar excepciones en errores
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,      // Devolver resultados como array asociativo
+        PDO::ATTR_EMULATE_PREPARES   => false,                 // Desactivar emulacion para seguridad
+    ];
+    // El objeto de conexión se llama $pdo o $db en PDO. Usaremos $conn para mantener consistencia.
+    $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, $options);
 
 // 2. Verificar la conexión
-} catch (mysqli_sql_exception $e) {
-    //Captura la excepcion lanzada por new mysqli()
-    $errores = "Error de conexion a la base de datos: ". $e->getMessage();
+} catch (PDOException $e) {
+    //Captura la excepcion lanzada por PDO
+    $errores = "Error de conexion a la base de datos (PDO): ". $e->getMessage();
     error_log($errores);
     send_json_error("Lo sentimos, no pudimos conectar con la base de datos en este momento. Por favor, intentalo mas tarde.", 500);
-} catch (Exception $e) {
-    //Captura cualquier otra excepcion que no sea mysqli_sql_exception
-    $errores = "Ha ocurrido un error inesperado: ". $e->getMessage();
-    error_log($errores);
-    send_json_error("Ha ocurrido un error inesperado. Por favor, intentalo mas tarde.", 500);
 }
-
-// Opcional: Establecer el conjunto de caracteres a UTF-8 para evitar problemas con acentos y caracteres especiales
-$conn->set_charset("utf8");

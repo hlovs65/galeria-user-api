@@ -38,139 +38,132 @@ if (is_rate_limited()) {
 // PROCESAMIENTO DE PETICIÓN
 // ----------------------------------------------------
 
+try {
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // 1. Leer el cuerpo crudo de la solicitud
-    $json_data = file_get_contents('php://input');
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-    // 2. Decodificar el JSON en un objeto o array asociativo de PHP
-    // true para que sea un array asociativo
-    $data = json_decode($json_data, true); 
+        // 1. Leer el cuerpo crudo de la solicitud
+        $json_data = file_get_contents('php://input');
 
-    // 3. Verificar si la decodificación fue exitosa y si los campos existen
-    if ($data === null) {
-    // Fallo en la decodificación JSON o cuerpo vacío
-    send_json_error(400, "Formato JSON inválido.");
-    }
+        // 2. Decodificar el JSON en un objeto o array asociativo de PHP
+        // true para que sea un array asociativo
+        $data = json_decode($json_data, true); 
 
-
-
-    // 4. Recibir los datos del  formulario y que no estén vacíos
-    $errores    = []; // Array para almacenar errores
-    $usuario    = []; // Array para almacenar datos del usuario
-    $identificador = htmlspecialchars(trim($data['username-or-email'] ?? '')); // Usamos htmlspecialchars para evitar XSS
-    $contraseña = trim($data['password'] ?? ''); // Usamos el operador de fusión de null para evitar errores si no se envía el campo
-
-    
-    // Validar que los campos no estén vacíos
-    if (empty($identificador) || empty($contraseña)) {
-        $errores[] = "El nombre de usuario o correo electrónico y la contraseña son obligatorios.";
-    }
-
-    // 5. Si hay errores iniciales, los mostramos
-    // Si hay errores de validación o credenciales incorrectas:
-    if (!empty($errores)) {
-        // Cierra recursos si es necesario antes de enviar la respuesta
-        if (isset($conn) && $conn->ping()) { $conn->close(); }
-        send_json_error(implode($errores, " "), 400);
-    }
-    
-    // 6. Preparar la consulta para verificar el usuario y contraseña
-    // Validar que el identificador sea un email o un nombre de usuario
-    $sql_query = "";
-    $param_type = "s"; // Tipo de parámetro para bind_param, 's' para string
-    if (filter_var($identificador, FILTER_VALIDATE_EMAIL)) {
-        // Si es un email, preparamos la consulta para buscar por email
-        $sql_query = "SELECT * FROM usuarios WHERE email = ?";
-    } else {
-        // Si es un usuario, preparamos la consulta para buscar por usuario
-        $sql_query = "SELECT * FROM usuarios WHERE username = ?";
-    }
-
-    $stmt = $conn->prepare($sql_query);
-    // Verificar si la preparación de la consulta fue exitosa
-    if ($stmt === false) {
-        error_log("Error en la preparación de la consulta: " . $conn->error);
-        if (isset($conn) && $conn->ping()) { $conn->close(); }
-        send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
-    }
-    
-    // Usamos una consulta preparada para evitar inyecciones SQL
-    $stmt->bind_param($param_type, $identificador); // Vinculamos el parámetro
-    // Ejecutamos la consulta
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Verificar si el usuario o el email ya existen en la base de datos
-    if ($result->num_rows === 1) {
-        // Si encontramos un usuario, verificamos la contraseña         
-        $usuario = $result->fetch_assoc();
-        if (password_verify($contraseña, $usuario['password'])) {
-            // Contraseña correcta, iniciamos sesión
-
-            // Actualizar el estado del usuario a 1 (conectado) en la base de datos
-            $current_db_status = $usuario['estado'];
-            $current_db_correo_verificado = $usuario['correo_verificado'];
-
-            // Solo actualizamos si el usuario estaba desconectado
-            if ( $current_db_status === 0 && $current_db_correo_verificado === 1) { // Solo actualizamos si el usuario estaba desconectado
-                // Preparar los valores para la actualización
-                $nombre_columna = 'estado';
-                $valor_columna = 1;
-
-                $update_success = update_user_field($conn, $usuario['id'], $nombre_columna, $valor_columna); // Actualizar el estado del usuario a 1 (conectado)
-                if (!$update_success) {
-                    error_log("Aviso: falla al actualizar el estado del usuario: " . $conn->error);
-                    if (isset($stmt) && $stmt) { $stmt->close(); }
-                    if (isset($conn) && $conn->ping()) { $conn->close(); }
-                    send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
-                }
-            } else if ($current_db_correo_verificado === 0) {
-                // Si el correo no está verificado, no permitimos el inicio de sesión
-                if (isset($stmt) && $stmt) { $stmt->close(); }
-                if (isset($conn) && $conn->ping()) { $conn->close(); }
-                send_json_error("Tu correo electrónico no ha sido verificado. Por favor, verifica tu correo antes de iniciar sesión.", 403);
-            }
-
-
-            // generar JWT y enviar respuesta de éxito
-            $jwt = generate_jwt($usuario);
-
-            // Cierra la declaración y la conexión antes de enviar la respuesta
-            if (isset($stmt) && $stmt) {
-                $stmt->close(); 
-            }
-            if (isset($conn) && $conn->ping()) {
-                $conn->close(); 
-            }
-            // ENVIAR RESPUESTA DE ÉXITO
-            $mensaje_exito = "Bienvenido de nuevo, " . htmlspecialchars($usuario['username']) . "!";
-            $datos_usuario = [
-                "token" => $jwt, // El token JWT generado
-                "user_id" => $usuario['id'],
-                "username" => $usuario['username'],
-                "email" => $usuario['email'],
-                "estado" => 1, // Usuario conectado
-                "role" => $usuario['role_name'],
-            ];
-
-            send_json_success($mensaje_exito, $datos_usuario, 200); // Enviar respuesta de éxito
-        } else {
-            $errores[] = "Usuario o contraseña incorrectos.";
+        // 3. Verificar si la decodificación fue exitosa y si los campos existen
+        if ($data === null) {
+        // Fallo en la decodificación JSON o cuerpo vacío
+        send_json_error(400, "Formato JSON inválido.");
         }
-    } else if ($result->num_rows === 0) {
-            send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
+
+
+
+        // 4. Recibir los datos del  formulario y que no estén vacíos
+        $errores    = []; // Array para almacenar errores
+        $usuario    = []; // Array para almacenar datos del usuario
+        $identificador = htmlspecialchars(trim($data['username-or-email'] ?? '')); // Usamos htmlspecialchars para evitar XSS
+        $contraseña = trim($data['password'] ?? ''); // Usamos el operador de fusión de null para evitar errores si no se envía el campo
+
+    
+        // Validar que los campos no estén vacíos
+        if (empty($identificador) || empty($contraseña)) {
+            $errores[] = "El nombre de usuario o correo electrónico y la contraseña son obligatorios.";
+        }
+
+        // 5. Si hay errores iniciales, los mostramos
+        // Si hay errores de validación o credenciales incorrectas:
+        if (!empty($errores)) {
+            send_json_error(implode($errores, " "), 400);
+        }
+    
+        // 6. Preparar la consulta para verificar el usuario y contraseña
+        // Validar que el identificador sea un email o un nombre de usuario
+        $sql_query = "";
+
+        if (filter_var($identificador, FILTER_VALIDATE_EMAIL)) {
+            // Si es un email, preparamos la consulta para buscar por email
+            $sql_query = "SELECT * FROM usuarios WHERE email = :identificador";
+        } else {
+            // Si es un usuario, preparamos la consulta para buscar por usuario
+            $sql_query = "SELECT * FROM usuarios WHERE username = :identificador";
+        }
+
+        // Preparar la declaración
+        $stmt = $conn->prepare($sql_query);
+    
+        // Ejecutamos la consulta
+        $stmt->execute([':identificador' => $identificador]);
+
+        // Verificar si el usuario o el email ya existen en la base de datos
+        if ($stmt->rowCount() === 1) {
+            // Si encontramos un usuario, verificamos la contraseña         
+            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (password_verify($contraseña, $usuario['password'])) {
+                // Contraseña correcta, iniciamos sesión
+
+                // Actualizar el estado del usuario a 1 (conectado) en la base de datos
+                $current_db_status = $usuario['estado'];
+                $current_db_correo_verificado = $usuario['correo_verificado'];
+
+               // Solo actualizamos si el usuario estaba desconectado
+                if ( $current_db_status === 0 && $current_db_correo_verificado === 1) { // Solo actualizamos si el usuario estaba desconectado
+                    // Preparar los valores para la actualización
+                    $nombre_columna = 'estado';
+                    $valor_columna = 1;
+
+                   $update_success = update_user_field($conn, $usuario['id'], $nombre_columna, $valor_columna); // Actualizar el estado del usuario a 1 (conectado)
+                    if (!$update_success) {
+                        throw new Exception("Error: No se pudo actualizar el estado del usuario.");
+                    }
+                } else if ($current_db_correo_verificado === 0) {
+                    // Si el correo no está verificado, no permitimos el inicio de sesión
+                    send_json_error("Tu correo electrónico no ha sido verificado. Por favor, verifica tu correo antes de iniciar sesión.", 403);
+                }
+
+                // generar JWT y enviar respuesta de éxito
+                $jwt = generate_jwt($usuario);
+
+                // ENVIAR RESPUESTA DE ÉXITO
+                $mensaje_exito = "Bienvenido de nuevo, " . htmlspecialchars($usuario['username']) . "!";
+                $datos_usuario = [
+                    "token" => $jwt, // El token JWT generado
+                    "user_id" => $usuario['id'],
+                    "username" => $usuario['username'],
+                    "email" => $usuario['email'],
+                    "estado" => 1, // Usuario conectado
+                    "role" => $usuario['role_name'],
+                ];
+
+                send_json_success($mensaje_exito, $datos_usuario, 200); // Enviar respuesta de éxito
+            } else {
+                $errores[] = "Usuario o contraseña incorrectos.";
+            }
+        } else if ($stmt->rowCount() === 0) {
+                send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
+        }
+
+        // 7. Si hay errores después de la verificación de credenciales, los mostramos
+        if (!empty($errores)) {
+            send_json_error(implode(". ", $errores), 400); // Enviar error 400 con los mensajes de error
+        }
+
+    } else {
+        // Si no es una solicitud POST, enviamos un error 405 (Método no permitido)
+        send_json_error("Método no permitido. Usa POST para enviar datos." . json_encode($identificador), 405); // Enviar error 405 si no es POST
     }
 
-      // 7. Si hay errores después de la verificación de credenciales, los mostramos
-    if (!empty($errores)) {
-        // Cierra la declaración y la conexión antes de redirigir
-        if (isset($stmt) && $stmt) { $stmt->close(); }
-        if (isset($conn) && $conn->ping()) { $conn->close(); }
-        send_json_error(implode(". ", $errores), 400); // Enviar error 400 con los mensajes de error
-    }
+} catch (PDOException $e) {
+    error_log("Error de BD (PDO): " . $e->getMessage());
+    send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
 
-} else {
-    // Si no es una solicitud POST, enviamos un error 405 (Método no permitido)
-    send_json_error("Método no permitido. Usa POST para enviar datos." . json_encode($identificador), 405); // Enviar error 405 si no es POST
+} catch (Exception $e) {
+    error_log("Error inesperado: " . $e->getMessage());
+    send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
+
+} finally {
+    // Asegurarse de cerrar la declaración y la conexión en el bloque finally
+    if (isset($stmt)) { $stmt = null; }
+    if (isset($conn)) { $conn = null; }
 }
+
+ob_end_flush(); // Enviar el contenido del búfer de salida y desactivar el almacenamiento en búfer
+?>
