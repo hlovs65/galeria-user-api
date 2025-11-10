@@ -1,9 +1,9 @@
 # Usamos una imagen oficial de PHP con Apache
 FROM php:8.2-apache
 
-# INSTALACIÓN DEL DRIVER PDO PARA MYSQL (SOLUCIONA 'could not find driver')
+# INSTALACIÓN DEL DRIVER PDO PARA POSTGRESQL (SOLUCIONA 'could not find driver')
 # -----------------------------------------------------------------------
-RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install pdo_pgsql
 # -----------------------------------------------------------------------
 
 # Copiamos todo el código de su repositorio al directorio del servidor web

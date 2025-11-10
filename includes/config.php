@@ -8,43 +8,42 @@ $dotenv->safeLoad(); // Carga las variables desde el archivo .env si existe
 // ===========================================
 // Configuración de la base de datos
 // ===========================================
-define('DB_SERVER', $_ENV['DB_SERVER']);
-define('DB_USERNAME', $_ENV['DB_USERNAME']);
-define('DB_PASSWORD', $_ENV['DB_PASSWORD']);
-define('DB_NAME', $_ENV['DB_NAME']);
+define('DB_SERVER', getenv('DB_SERVER'));
+define('DB_USERNAME', getenv('DB_USERNAME'));
+define('DB_PASSWORD', getenv('DB_PASSWORD'));
+define('DB_NAME', getenv('DB_NAME'));
 
 // ===========================================
 // Configuración de la URL base
 // ===========================================
-define('BASE_URL', $_ENV['BASE_URL']);
+define('BASE_URL', getenv('BASE_URL'));
 
 // ===========================================
 // Configuración de la Clave Secreta para JWT
 // ===========================================
-define('JWT_SECRET_KEY', $_ENV['JWT_SECRET_KEY']);
+define('JWT_SECRET_KEY', getenv('JWT_SECRET_KEY'));
 
 // ===========================================
 // CONSTANTES DE CONFIGURACIÓN DE CORREO (SMTP)
 // ===========================================
 
 // Servidor SMTP (Gmail, Outlook, o tu proveedor)
-define('SMTP_HOST', $_ENV['SMTP_HOST']); 
-
+define('SMTP_HOST', getenv('SMTP_HOST')); 
 // Puerto SMTP (587 para TLS o 465 para SSL)
-define('SMTP_PORT', $_ENV['SMTP_PORT']); 
+define('SMTP_PORT', getenv('SMTP_PORT')); 
 
 // Nombre de usuario de la cuenta de correo
-define('SMTP_USERNAME', $_ENV['SMTP_USERNAME']); 
+define('SMTP_USERNAME', getenv('SMTP_USERNAME')); 
 
 // Contraseña de la cuenta de correo (USA CONTRASEÑA DE APLICACIÓN para Gmail)
-define('SMTP_PASSWORD', $_ENV['SMTP_PASSWORD']); 
+define('SMTP_PASSWORD', getenv('SMTP_PASSWORD')); 
 
 // Correo que aparecerá como remitente
-define('MAIL_FROM_EMAIL', $_ENV['MAIL_FROM_EMAIL']); 
+define('MAIL_FROM_EMAIL', getenv('MAIL_FROM_EMAIL')); 
 
 // Nombre que aparecerá como remitente
-define('MAIL_FROM_NAME', $_ENV['MAIL_FROM_NAME']);
+define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME'));
 // ===========================================
 // URL base acceso frontend despues de envio de email
 // ===========================================
-define('BASE_URL_FRONTEND', $_ENV['BASE_URL_FRONTEND']);
+define('BASE_URL_FRONTEND', getenv('BASE_URL_FRONTEND'));
