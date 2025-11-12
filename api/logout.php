@@ -16,6 +16,10 @@ use Firebase\JWT\ExpiredException;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\SignatureInvalidException;
 
+// Cargar variables de entorno
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
 require_once '../includes/config.php'; // Incluir la configuración (base de datos, JWT_SECRET_KEY, etc.)
 
 // ----------------------------------------------------
