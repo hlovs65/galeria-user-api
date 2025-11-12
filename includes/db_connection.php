@@ -5,7 +5,7 @@
 
 try {
     //Usar PDO (PHP Data Objects)
-    $dsn = 'pgsql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+    $dsn = 'pgsql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';port=' . DB_PORT;
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Lanzar excepciones en errores

@@ -12,6 +12,7 @@ define('DB_SERVER', getenv('DB_SERVER'));
 define('DB_USERNAME', getenv('DB_USERNAME'));
 define('DB_PASSWORD', getenv('DB_PASSWORD'));
 define('DB_NAME', getenv('DB_NAME'));
+define('DB_PORT', getenv('DB_PORT'));
 
 // ===========================================
 // Configuración de la URL base
