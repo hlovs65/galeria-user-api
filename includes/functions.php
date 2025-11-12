@@ -94,12 +94,12 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
     $stmt = null; // Inicializar la variable de la declaración
     try {
 
-        // Preparar la consulta
-        $sql_query = "UPDATE usuarios SET `" . $columnName . "` = :newValue WHERE id = :userId";
+        // Preparar la consulta 
+        $sql_query = "UPDATE usuarios SET \"" . $columnName . "\" = :newValue WHERE id = :userId";
         $stmt = $conn->prepare($sql_query);
 
-        // Ejecutar la consulta
-        $stmt->execute(['newValue' => $newValue, 'userId' => $userId]);
+        // Ejecutar la consulta. Forzar el valor booleano a entero (0 o 1)
+        $stmt->execute(['newValue' => (bool)$newValue, 'userId' => $userId]);
 
         // Verificar si se actualizó algún registro
         if ($stmt->rowCount() > 0) {

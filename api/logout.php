@@ -16,10 +16,6 @@ use Firebase\JWT\ExpiredException;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\SignatureInvalidException;
 
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
-
 require_once '../includes/config.php'; // Incluir la configuración (base de datos, JWT_SECRET_KEY, etc.)
 
 // ----------------------------------------------------
@@ -30,13 +26,13 @@ require_once '../includes/jwt_utils.php'; // Incluir las funciones de JWT
 require_once '../includes/db_connection.php'; // Incluir el archivo de conexión a la base de datos
 
 
+try {
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
-    try {
-// ----------------------------------------------------
-// PASO 4: Obtener el token de la cabecera Authorization
-// ----------------------------------------------------
+        // ----------------------------------------------------
+        // PASO 4: Obtener el token de la cabecera Authorization
+        // ----------------------------------------------------
         $user_id = get_user_id_from_token($conn);
 
         if (!$user_id) {
@@ -44,34 +40,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             send_json_error("Sesion invalida o expirada. Ya estas desconectado", 401);
         }   
 
-
-
-// ----------------------------------------------------
-// PASO 5: Actualizar el estado del usuario a 0 (desconectado) en la base de datos
-// ----------------------------------------------------
+        // ----------------------------------------------------
+        // PASO 5: Actualizar el estado del usuario a 0 (desconectado) en la base de datos
+        // ----------------------------------------------------
         $userid_int = (int)$user_id;
         $update_success = update_user_field($conn, $userid_int, 'estado', 0);
 
-
-        if ($update_success) {
-// ----------------------------------------------------
-// PASO 6: Responder con éxito
-// ----------------------------------------------------
-            send_json_success("Usuario desconectado exitosamente.", [], 200);
-        } else {
-        // Error al actualizar el estado del usuario
-            send_json_error("Error al desconectar el usuario.", 500);
+        if (!$update_success) {
+            throw new Exception("Error al actualizar el estado del usuario en la base de datos.");
         }
-    } catch (\mysqli_sql_exception $e) {
-        error_log("EXCEPCIÓN CRÍTICA DE DB EN LOGOUT: " . $e->getMessage() . " | Código: " . $e->getCode());
-        send_json_error("Error de servidor: Fallo crítico de base de datos.", 500);
+        // ----------------------------------------------------
+        // PASO 6: Responder con éxito
+        // ----------------------------------------------------
+            send_json_success("Usuario desconectado exitosamente.", [], 200);
+    } else {
+        // Método no permitido
+        send_json_error("Método no permitido", 405);
     }
-    // Asegurarse de que la conexión a la base de datos se haya cerrado correctamente
-    if (isset($conn) && $conn->ping()) {
-        $conn->close(); // Cerrar la conexión a la base de datos si está activa
-    }   
-} else {
-    // Método no permitido
-    send_json_error("Método no permitido", 405);
+} catch (PDOException $e) {
+        error_log("EXCEPCIÓN CRÍTICA DE BD EN LOGOUT (PDO): " . $e->getMessage());
+        send_json_error("Error de servidor: Fallo crítico de base de datos.", 500);
+
+    } catch (Exception $e) {
+        error_log("EXCEPCIÓN CRÍTICA EN LOGOUT: " . $e->getMessage());
+        send_json_error("Error de servidor: Fallo crítico.", 500);
+
+} finally {
+        if (isset($conn)) { $conn = null; } // Cerrar la conexión a la base de datos
 }
 ?>
