@@ -105,7 +105,7 @@ try {
                 $current_db_correo_verificado = $usuario['correo_verificado'];
 
                // Solo actualizamos si el usuario estaba desconectado
-                if ( $current_db_status === 0 && $current_db_correo_verificado === 1) { // Solo actualizamos si el usuario estaba desconectado
+                if ( $current_db_status === false && $current_db_correo_verificado === true) { // Solo actualizamos si el usuario estaba desconectado
                     // Preparar los valores para la actualización
                     $nombre_columna = 'estado';
                     $valor_columna = 1;
@@ -114,7 +114,7 @@ try {
                     if (!$update_success) {
                         throw new Exception("Error: No se pudo actualizar el estado del usuario.");
                     }
-                } else if ($current_db_correo_verificado === 0) {
+                } else if ($current_db_correo_verificado === false) {
                     // Si el correo no está verificado, no permitimos el inicio de sesión
                     send_json_error("Tu correo electrónico no ha sido verificado. Por favor, verifica tu correo antes de iniciar sesión.", 403);
                 }
