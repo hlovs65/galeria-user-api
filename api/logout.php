@@ -45,11 +45,11 @@ try {
         }   
 
         // ----------------------------------------------------
-        // PASO 5: Actualizar el estado del usuario a 0 (desconectado) en la base de datos
+        // PASO 5: Actualizar el estado del usuario a false (desconectado) en la base de datos
         // ----------------------------------------------------
         $userid_int = (int)$user_id;
         $nombre_columna = 'estado';
-        $valor_columna = 0; // 0 para desconectado
+        $valor_columna = false; // valor booleano para desconectado
         $update_success = update_user_field($conn, $userid_int, $nombre_columna, $valor_columna);
 
         if (!$update_success) {

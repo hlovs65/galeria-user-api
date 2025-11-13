@@ -75,21 +75,10 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
  * @param PDO $conn La conexión a la base de datos.
  * @param int $userId El ID del usuario cuyo estatus se va a modificar.
  * @param string $columnName El campo que se va a actualizar (correo_verificado o estado).
- * @param int $newValue El nuevo valor del campo (0 o 1).
+ * @param bool $newValue El nuevo valor del campo (false o true).
  * @return bool True si la actualización fue exitosa, false en caso contrario.
  */
 function update_user_field($conn, $userId, $columnName, $newValue) {
-    // ----------------------------------------------------------------------
-    // ¡DEBUG AQUÍ!
-    // ----------------------------------------------------------------------
-    error_log("DEBUG update_user_field: Columna: " . $columnName);
-    // Usa var_export para mostrar el tipo y el valor exacto
-    error_log("DEBUG update_user_field: Valor recibido (\$newValue): " . var_export($newValue, true));
-    error_log("DEBUG update_user_field: Tipo de dato de \$newValue: " . gettype($newValue));
-    error_log("DEBUG update_user_field: Valor recibido (\$userId): " . var_export($userId, true));
-    error_log("DEBUG update_user_field: Tipo de dato de \$userId: " . gettype($userId));
-    // ----------------------------------------------------------------------
-    
     // Asegurarse de que la conexión sea válida
     if (!$conn || !$userId || !$columnName) {
         error_log("update_user_field: Conexión inválida o ID o nombre de columna no proporcionado.");
@@ -109,8 +98,8 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         $sql_query = "UPDATE usuarios SET \"" . $columnName . "\" = :newValue WHERE id = :userId";
         $stmt = $conn->prepare($sql_query);
 
-        // Ejecutar la consulta. Forzar el valor booleano a entero (0 o 1)
-        $stmt->execute(['newValue' => (bool)$newValue, 'userId' => $userId]);
+        // Ejecutar la consulta. 
+        $stmt->execute(['newValue' => $newValue, 'userId' => $userId]);
 
         // Verificar si se actualizó algún registro
         if ($stmt->rowCount() > 0) {

@@ -100,7 +100,7 @@ try {
             if (password_verify($contraseña, $usuario['password'])) {
                 // Contraseña correcta, iniciamos sesión
 
-                // Actualizar el estado del usuario a 1 (conectado) en la base de datos
+                // Actualizar el estado del usuario a true (conectado) en la base de datos
                 $current_db_status = $usuario['estado'];
                 $current_db_correo_verificado = $usuario['correo_verificado'];
 
@@ -108,9 +108,9 @@ try {
                 if ( $current_db_status === false && $current_db_correo_verificado === true) { // Solo actualizamos si el usuario estaba desconectado
                     // Preparar los valores para la actualización
                     $nombre_columna = 'estado';
-                    $valor_columna = 1;
+                    $valor_columna = true;
 
-                   $update_success = update_user_field($conn, $usuario['id'], $nombre_columna, $valor_columna); // Actualizar el estado del usuario a 1 (conectado)
+                   $update_success = update_user_field($conn, $usuario['id'], $nombre_columna, $valor_columna); // Actualizar el estado del usuario a true (conectado)
                     if (!$update_success) {
                         throw new Exception("Error: No se pudo actualizar el estado del usuario.");
                     }
@@ -129,8 +129,8 @@ try {
                     "user_id" => $usuario['id'],
                     "username" => $usuario['username'],
                     "email" => $usuario['email'],
-                    "estado" => 1, // Usuario conectado
-                    "role" => $usuario['role_name'],
+                    "estado" => $valor_columna, // Usuario conectado (true)
+                    "role" => $usuario['role_name']
                 ];
 
                 send_json_success($mensaje_exito, $datos_usuario, 200); // Enviar respuesta de éxito
