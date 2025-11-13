@@ -37,7 +37,7 @@ try {
         // ----------------------------------------------------
         // PASO 4: Obtener el token de la cabecera Authorization
         // ----------------------------------------------------
-        $user_id = get_user_id_from_token($conn);
+        $user_id = get_user_id_from_token();
 
         if (!$user_id) {
         // Token inválido o no proporcionado

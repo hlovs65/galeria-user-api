@@ -101,10 +101,9 @@ function create_user_token(int $user_id, string $username, string $email, string
 /**
  * Obtiene el ID del usuario desde el token JWT en la cabecera Authorization.
  *
- * @param mysqli $conn Objeto de conexión a la base de datos (se usa para pasarla a otras funciones de error si es necesario).
  * @return int|false Retorna el ID del usuario si el token es válido, o false en caso de error.
  */
-function get_user_id_from_token($conn) {
+function get_user_id_from_token() {
     // 1. Obtener la cabecera Authorization y extraer el token
 // Reemplaza getallheaders() por $_SERVER
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
