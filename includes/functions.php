@@ -85,6 +85,9 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
     error_log("DEBUG update_user_field: Columna: " . $columnName);
     // Usa var_export para mostrar el tipo y el valor exacto
     error_log("DEBUG update_user_field: Valor recibido (\$newValue): " . var_export($newValue, true));
+    error_log("DEBUG update_user_field: Tipo de dato de \$newValue: " . gettype($newValue));
+    error_log("DEBUG update_user_field: Valor recibido (\$userId): " . var_export($userId, true));
+    error_log("DEBUG update_user_field: Tipo de dato de \$userId: " . gettype($userId));
     // ----------------------------------------------------------------------
     
     // Asegurarse de que la conexión sea válida
