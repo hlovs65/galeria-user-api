@@ -98,8 +98,17 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         $sql_query = "UPDATE usuarios SET \"" . $columnName . "\" = :newValue WHERE id = :userId";
         $stmt = $conn->prepare($sql_query);
 
+        /*-----------------------------------------------------------*/
+        /*-- Bindear los parámetros para la actualización de usuario */
+        /*-----------------------------------------------------------*/
+        // 1. Bindear el valor nuevo de estado como booleano
+        $stmt->bindValue(':newValue', $newValue, PDO::PARAM_BOOL);
+
+        // 2. Bindear el ID del usuario como entero
+        $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
+
         // Ejecutar la consulta. 
-        $stmt->execute(['newValue' => $newValue, 'userId' => $userId]);
+        $stmt->execute();
 
         // Verificar si se actualizó algún registro
         if ($stmt->rowCount() > 0) {
