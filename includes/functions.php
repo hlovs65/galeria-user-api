@@ -79,6 +79,14 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
  * @return bool True si la actualización fue exitosa, false en caso contrario.
  */
 function update_user_field($conn, $userId, $columnName, $newValue) {
+    // ----------------------------------------------------------------------
+    // ¡DEBUG AQUÍ!
+    // ----------------------------------------------------------------------
+    error_log("DEBUG update_user_field: Columna: " . $columnName);
+    // Usa var_export para mostrar el tipo y el valor exacto
+    error_log("DEBUG update_user_field: Valor recibido (\$newValue): " . var_export($newValue, true));
+    // ----------------------------------------------------------------------
+    
     // Asegurarse de que la conexión sea válida
     if (!$conn || !$userId || !$columnName) {
         error_log("update_user_field: Conexión inválida o ID o nombre de columna no proporcionado.");
