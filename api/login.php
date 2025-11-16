@@ -75,28 +75,16 @@ try {
             send_json_error(implode($errores, " "), 400);
         }
     
-        // 6. Preparar la consulta para verificar el usuario y contraseña
-        // Validar que el identificador sea un email o un nombre de usuario
-        $sql_query = "";
+        // 6. Buscar el usuario en la base de datos por nombre de usuario o correo electrónico
+        $columna_to_select = "*"; // Seleccionar todas las columnas necesarias
+        $condicion = [ 'username' => $identificador, 'email' => $identificador ]; // Condición para buscar por usuario o email
 
-        if (filter_var($identificador, FILTER_VALIDATE_EMAIL)) {
-            // Si es un email, preparamos la consulta para buscar por email
-            $sql_query = "SELECT * FROM usuarios WHERE email = :identificador";
-        } else {
-            // Si es un usuario, preparamos la consulta para buscar por usuario
-            $sql_query = "SELECT * FROM usuarios WHERE username = :identificador";
-        }
-
-        // Preparar la declaración
-        $stmt = $conn->prepare($sql_query);
+        $usuario = get_user_data_by_condition($conn, $columna_to_select, $condicion);
     
-        // Ejecutamos la consulta
-        $stmt->execute([':identificador' => $identificador]);
-
         // Verificar si el usuario o el email ya existen en la base de datos
-        if ($stmt->rowCount() === 1) {
+        if ($usuario !== null) {
+
             // Si encontramos un usuario, verificamos la contraseña         
-            $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
             if (password_verify($contraseña, $usuario['password'])) {
                 // Contraseña correcta, iniciamos sesión
 
@@ -135,17 +123,11 @@ try {
 
                 send_json_success($mensaje_exito, $datos_usuario, 200); // Enviar respuesta de éxito
             } else {
-                $errores[] = "Usuario o contraseña incorrectos.";
+                send_json_error("Usuario o contraseña incorrectos.", 400); // Enviar error 400 con los mensajes de error
             }
         } else if ($stmt->rowCount() === 0) {
                 send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
         }
-
-        // 7. Si hay errores después de la verificación de credenciales, los mostramos
-        if (!empty($errores)) {
-            send_json_error(implode(". ", $errores), 400); // Enviar error 400 con los mensajes de error
-        }
-
     } else {
         // Si no es una solicitud POST, enviamos un error 405 (Método no permitido)
         send_json_error("Método no permitido. Usa POST para enviar datos." . json_encode($identificador), 405); // Enviar error 405 si no es POST
@@ -157,7 +139,7 @@ try {
 
 } catch (Exception $e) {
     error_log("Error inesperado: " . $e->getMessage());
-    send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
+    send_json_error("Ocurrió un error interno del servidor." . $e->getMessage(), 500);
 
 } finally {
     // Asegurarse de cerrar la declaración y la conexión en el bloque finally

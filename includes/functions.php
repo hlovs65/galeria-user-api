@@ -128,77 +128,140 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
 /**
  * Obtiene el estatus actual de un usuario desde la base de datos.
  *
- * @param mysqli $conn La conexión a la base de datos.
- * @param string $columnToSelect El campo que se desea seleccionar (Todas las columnas de tabla usuarios).
- * @param string $columnToSearch El campo que se va a buscar (id, username, password, email, nombre, fecha_registro, estado o correo_verificado).
- * @param mixed $searchValue El valor del campo que se va a buscar (ejemplo: id, username, password, email, nombre, fecha_registro, estado o correo_verificado).
+ * @param PDO $conn La conexión a la base de datos.
+ * @param string $columnToSelect El campo/s a seleccionar (ej: 'username, email' o '*').
+ * @param array $conditions Un array asociativo con las condiciones de búsqueda (ej: ['id' => 1, 'email' => 'ejemplo@correo.com']).
  * @return array|null Un array con los datos del usuario si se encuentra, o null si no existe o hay un error.
  */
-function get_user_data_by_field($conn, $columnToSelect, $columnToSearch, $searchValue) {
+function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $conditions): ?array {
+
     // 1.- Validar parametro de entrada
-    if (!$conn || empty($columnToSelect) || empty($columnToSearch) || $searchValue === "" || $searchValue === null) {
-        error_log("get_user_data_by_field: Conexión inválida o parámetros invalidos.");
+    if (!$conn || empty($columnToSelect) || empty($conditions)) {
+        error_log("get_user_data_by_conditions: Conexión inválida o parámetros invalidos.");
         return null;
     }
 
-    // 2.- Validar que los campos de búsqueda y selección sean válidos
-    $allowed_columns = ['id', 'username', 'password', 'email', 'nombre', 'fecha_registro', 'estado', 'correo_verificado'];
+    /**
+    * Construir la clausula WHERE dinámicamente
+    * Validar que los campos de búsqueda y selección sean válidos
+    */
+    $where_clauses = [];
+    $allowed_columns = ['id', 'username', 'password', 'email', 'nombre', 'fecha_registro', 'estado', 'correo_verificado', 'role_name'];
 
     // 2.1 Validar que la columna de busqueda sea válida
-    if (!in_array($columnToSearch, $allowed_columns)) {
-        error_log("get_user_data_by_field: Columnas no permitidas para busqueda.");
-        return null;
+    foreach ($conditions as $column => $value) {
+        if (!in_array($column, $allowed_columns)) {
+            error_log("get_user_data_by_conditions: Columnas no permitidas para busqueda.");
+            return null;
+        }
+        $where_clauses[] = "\"{$column}\" = :{$column}"; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
     }
 
+    $where_string = "WHERE " . implode(' OR ', $where_clauses);
+
     // 2.2 Validar que la columna de selección sea válida
+    $select_columns = '*'; // Por defecto seleccionar todas las columnas
     if ($columnToSelect !== '*') {
+        $select_array = [];
         $select_columns = explode(',', $columnToSelect); // Dividir la cadena de nombres de columnas en un array
 
         // Iterar sobre las columnas seleccionadas que existan en la lista permitida
         foreach ($select_columns as $col) {
-            if (!in_array(trim($col), $allowed_columns)) {
+            $clean_col = trim($col);
+            if (!in_array($clean_col, $allowed_columns)) {
                 error_log("get_user_data_by_field: Columnas no permitidas para selección.");
                 return null;
             }
+            $select_array[] = "\"{$clean_col}\""; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
         }
+        $select_columns = implode(", ", $select_array);
     }
 
     // 3. Preparar la consulta SQL
-    $sql_query = "SELECT " . $columnToSelect . " FROM usuarios WHERE " . $columnToSearch . " = ?";
-    // Usar una consulta preparada para evitar inyecciones SQL
-    $stmt = $conn->prepare($sql_query);
-    if (!$stmt) {
-        error_log("Error en la preparación de la consulta get_user_data_by_field: " . $conn->error);
+    $sql_query = "SELECT " . $select_columns . " FROM usuarios " . $where_string . " LIMIT 1";
+
+    try {
+        $stmt = $conn->prepare($sql_query);
+
+        // 4.- Bindear los parámetros dinámicamente
+        foreach ($conditions as $column => $value) {
+            $stmt->bindValue(':' . $column, $value);
+        }
+
+        // 5.- Ejecutar la consulta
+        $stmt->execute();
+
+        // 6.- Obtener el resultado
+        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $user_data ?: null; // Retornar null si no se encuentra ningún usuario
+
+    } catch (PDOException $e) {
+        error_log("Error de BD (PDO) en get_user_data_by_conditions: " . $e->getMessage());
+        return null;
+    }
+}   
+
+/**
+ * Registra un nuevo registro en una tabla de la base de datos de forma dinámica y segura.
+ *
+ * @param PDO $conn La conexión a la base de datos.
+ * @param string $tableName El nombre de la tabla donde se insertará (ej: 'usuarios').
+ * @param array $data Un array asociativo con los valores de los campos (ej: ['id' => 1, 'email' => 'ejemplo@correo.com']).
+ * @return array|null  returna un array con el ID del usuario insertado (ej: ['id' => 1]) si se realiza con éxito, o null en caso de error.
+ */
+function create_record(PDO $conn, string $tableName, array $data): ?array {
+    $tableName = trim($tableName);
+    // 1.- Validar parametro de entrada
+    if (!$conn || empty($tableName) || empty($data)) {
+        error_log("create_record: Conexión inválida o parámetros invalidos.");
         return null;
     }
 
-    // 4. Determinar el tipo de parámetro
-    $param_type = "s";  // Por defecto string
-    if (is_int($searchValue)) {
-        $param_type = "i";
-    } elseif (is_float($searchValue)) {
-        $param_type = "d";
+    /**
+    * 2. Construir la clausula Values dinámicamente
+    * Validar que los campos de registro y sus valores sean válidos
+    */
+    $values_clauses = [];
+    $columns_clauses = [];
+    $allowed_columns = ['id', 'username', 'password', 'email', 'nombre', 'estado', 'correo_verificado', 'role_name'];
+
+    // 2.1 Validar que la columna de busqueda sea válida
+    foreach ($data as $column => $value) {
+        if (!in_array($column, $allowed_columns)) {
+            error_log("create_record: Columnas no permitidas para busqueda." . $column);
+            return null;
+        }
+        $columns_clauses[] = "\"{$column}\""; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
+        $values_clauses[] = ":{$column}"; // Usar placeholders para los valores
     }
+    // Construir la cadena de valores para la consulta SQL
+    $values_string = "VALUES " . "(" . implode(', ', $values_clauses) . ")";
 
-    // 5. Vincular el parámetro
-    $stmt->bind_param($param_type, $searchValue);
+    // Construir la cadena de columnas para la consulta SQL
+    $columns_string = implode(", ", $columns_clauses);
 
-    // 6. Ejecutar la consulta
-    if (!$stmt->execute()) {
-        error_log("Error al ejecutar la consulta get_user_data_by_field: " . $stmt->error);
-        $stmt->close();
-        return null;
-    }       
+    // 3. Preparar la consulta SQL
+    $sql_query = "INSERT INTO " . $tableName . " (" . $columns_string . ") " . $values_string . " RETURNING \"id\"";
 
-    $result = $stmt->get_result();
+    try {
+        $stmt = $conn->prepare($sql_query);
 
-    // Verificar si se encontró el usuario
-    if ($result->num_rows === 1) {
-        $user_data = $result->fetch_assoc();
-        $stmt->close();
-        return $user_data;
-    } else {
-        $stmt->close();
+        // 4.- Bindear los parámetros dinámicamente
+        foreach ($data as $column => $value) {
+            $stmt->bindValue(':' . $column, $value);
+        }
+
+        // 5.- Ejecutar la consulta
+        $stmt->execute();
+
+        // 6.- Obtener el resultado
+        $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $user_data ?: null; // Retornar null si no se recupera id del usuario insertado
+
+    } catch (PDOException $e) {
+        error_log("Error de BD (PDO) en create_record: " . $e->getMessage());
         return null;
     }
 }
