@@ -90,8 +90,7 @@ try {
         $existing_user = get_user_data_by_conditions($conn, $columna_to_select, $condition);
 
         if ($existing_user !== null) {
-                $errores[] = "El nombre de usuario o email ya está en uso.";
-            }
+            $errores[] = "El nombre de usuario o correo electrónico ya están en uso.";
         }
 
         // Si hay errores, los mostramos y detenemos la ejecución
