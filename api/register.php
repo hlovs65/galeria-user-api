@@ -43,7 +43,7 @@ try {
         // 4. Verificar si la decodificación fue exitosa y si los campos existen
         if ($data === null) {
             // Fallo en la decodificación JSON o cuerpo vacío
-            send_json_error(400, "Formato JSON inválido.");
+            send_json_error("Formato JSON inválido.", 400);
         }
 
         // ----------------------------------------------------
