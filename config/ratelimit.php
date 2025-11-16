@@ -16,7 +16,7 @@ define('BLOCK_DURATION', 300);
 
 // Directorio donde se almacenarán los archivos de conteo.
 // Asegúrate de que el servidor web tenga permisos de escritura en este directorio.
-define('RATE_LIMIT_DIR', __DIR__ . '/../ratelimit_logs/'); 
+define('RATE_LIMIT_DIR', '/tmp/ratelimit_logs/'); 
 
 // -----------------------------------------------------------
 // FUNCIONES DE UTILIDAD

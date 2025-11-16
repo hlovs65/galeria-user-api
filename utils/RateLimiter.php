@@ -3,6 +3,12 @@
 
 require_once __DIR__ . '/../config/ratelimit.php';
 
+// Bloque para crear la carpeta /tmp/ratelimit_logs/ si no existe
+if (!is_dir(RATE_LIMIT_DIR)) {
+    // 0777 da permisos de escritura, 'true' permite la creación recursiva
+    @mkdir(RATE_LIMIT_DIR, 0777, true); 
+}
+
 /**
  * Verifica si la dirección IP actual ha excedido el límite de solicitudes.
  *

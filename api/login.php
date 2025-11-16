@@ -79,7 +79,7 @@ try {
         $columna_to_select = "*"; // Seleccionar todas las columnas necesarias
         $condicion = [ 'username' => $identificador, 'email' => $identificador ]; // Condición para buscar por usuario o email
 
-        $usuario = get_user_data_by_condition($conn, $columna_to_select, $condicion);
+        $usuario = get_user_data_by_conditions($conn, $columna_to_select, $condicion);
     
         // Verificar si el usuario o el email ya existen en la base de datos
         if ($usuario !== null) {
