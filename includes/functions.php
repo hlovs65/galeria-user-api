@@ -131,7 +131,7 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
  * @param PDO $conn La conexión a la base de datos.
  * @param string $columnToSelect El campo/s a seleccionar (ej: 'username, email' o '*').
  * @param array $conditions Un array asociativo con las condiciones de búsqueda (ej: ['id' => 1, 'email' => 'ejemplo@correo.com']).
- * @return array|null Un array con los datos del usuario si se encuentra, o null si no existe o hay un error.
+ * @return array|null| ['id' => 0] Un array con los datos del usuario si se encuentra, o indicador con valor 0 si no existe o null si hay un error.
  */
 function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $conditions): ?array {
 
@@ -194,8 +194,7 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
         // 6.- Obtener el resultado
         $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $user_data ?: null; // Retornar null si no se encuentra ningún usuario
-
+        return $user_data ?: ['id' => 0]; // Retornar indicador con valor 0 si no se recupera ningún usuario
     } catch (PDOException $e) {
         error_log("Error de BD (PDO) en get_user_data_by_conditions: " . $e->getMessage());
         return null;

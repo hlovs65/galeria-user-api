@@ -81,9 +81,16 @@ try {
 
         $usuario = get_user_data_by_conditions($conn, $columna_to_select, $condicion);
     
-        // Verificar si el usuario o el email ya existen en la base de datos
-        if ($usuario !== null) {
+        // 7. Verificar si se encontró el usuario
+        if ($usuario === null) {
 
+            send_json_error("Error de servicio. Intentelo más tarde.", 500); // Enviar error 500 si hay un error en la consulta
+
+        } else if (empty($usuario) || $usuario['id'] === 0) {
+
+            send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
+
+        } else if ($usuario['id'] > 0) {
             // Si encontramos un usuario, verificamos la contraseña         
             if (password_verify($contraseña, $usuario['password'])) {
                 // Contraseña correcta, iniciamos sesión
@@ -123,10 +130,8 @@ try {
 
                 send_json_success($mensaje_exito, $datos_usuario, 200); // Enviar respuesta de éxito
             } else {
-                send_json_error("Usuario o contraseña incorrectos.", 400); // Enviar error 400 con los mensajes de error
+                send_json_error("Usuario o contraseña incorrectos.", 401); // Enviar error 401 con los mensajes de error
             }
-        } else if ($stmt->rowCount() === 0) {
-                send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
         }
     } else {
         // Si no es una solicitud POST, enviamos un error 405 (Método no permitido)
