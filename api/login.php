@@ -111,7 +111,15 @@ try {
                     }
                 } else if ($current_db_correo_verificado === false) {
                     // Si el correo no está verificado, no permitimos el inicio de sesión
-                    send_json_error("Tu correo electrónico no ha sido verificado. Por favor, verifica tu correo antes de iniciar sesión.", 403);
+                    // Definir datos de la respuesta 403
+                    $response_data = [
+                        "status" => "error",
+                        "message" => "Tu correo electrónico no ha sido verificado. Por favor, solicita un nuevo enlace de activacion.",
+                        "action" => "RESEND_VERIFICATION_EMAIL_NEEDED",
+                        "email " => $usuario['email']
+                    ];
+                    // Enviar respuesta JSON con código 403 personalizada
+                    send_json_response($response_data, 403);
                 }
 
                 // generar JWT y enviar respuesta de éxito
