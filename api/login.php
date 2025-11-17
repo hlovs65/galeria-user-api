@@ -116,7 +116,7 @@ try {
                         "status" => "error",
                         "message" => "Tu correo electrónico no ha sido verificado. Por favor, solicita un nuevo enlace de activacion.",
                         "action" => "RESEND_VERIFICATION_EMAIL_NEEDED",
-                        "email " => $usuario['email']
+                        "email" => $usuario['email']
                     ];
                     // Enviar respuesta JSON con código 403 personalizada
                     send_json_response(403, $response_data);
