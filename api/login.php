@@ -119,7 +119,7 @@ try {
                         "email " => $usuario['email']
                     ];
                     // Enviar respuesta JSON con código 403 personalizada
-                    send_json_response($response_data, 403);
+                    send_json_response(403, $response_data);
                 }
 
                 // generar JWT y enviar respuesta de éxito
