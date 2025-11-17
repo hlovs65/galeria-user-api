@@ -248,7 +248,16 @@ function create_record(PDO $conn, string $tableName, array $data): ?array {
 
         // 4.- Bindear los parámetros dinámicamente
         foreach ($data as $column => $value) {
-            $stmt->bindValue(':' . $column, $value);
+            if ($column === 'estado' || $column === 'correo_verificado') {
+                // Bindeo como booleano
+                $stmt->bindValue(':' . $column, $value, PDO::PARAM_BOOL);
+            } else if ($column === 'username' || $column === 'password' || $column === 'email' || $column === 'nombre' || $column === 'role_name') {
+                // Bindeo como string
+                $stmt->bindValue(':' . $column, $value, PDO::PARAM_STR);
+            } else {
+                // Bindeo por defecto
+                $stmt->bindValue(':' . $column, $value, PDO::PARAM_STR);
+            }
         }
 
         // 5.- Ejecutar la consulta
