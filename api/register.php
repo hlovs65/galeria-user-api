@@ -89,9 +89,13 @@ try {
         
         $existing_user = get_user_data_by_conditions($conn, $columna_to_select, $condition);
 
-        if ($existing_user !== null) {
+        if (existing_user === null) {
+            error_log("Fallo de BD: get_user_data_by_conditions devolvió NULL durante el registro.");
+            send_json_error("Error de servicio. No se pudo verificar la disponibilidad del usuario/correo.", 500);
+        } else if ($existing_user > 0) {
             $errores[] = "El nombre de usuario o correo electrónico ya están en uso.";
         }
+
 
         // Si hay errores, los mostramos y detenemos la ejecución
         if (!empty($errores)) {
