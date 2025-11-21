@@ -16,6 +16,7 @@ if (!defined('ABSPATH')) {
 
 
 /**
+ * Usada en login.php
  * Genera un JSON Web Token (JWT) basado en los datos del usuario.
  *
  * @param array $usuario Array asociativo con los datos del usuario (al menos 'id' y 'username').
@@ -42,19 +43,12 @@ function generate_jwt(array $usuario): string {
     // Generar el JWT en variable local
     $jwt_token = \Firebase\JWT\JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
 
-    // Diagnóstico: Decodificar el token inmediatamente para verificar su contenido
-    try {
-        $decoded = \Firebase\JWT\JWT::decode($jwt_token, new \Firebase\JWT\Key(JWT_SECRET_KEY, 'HS256'));
-        error_log("Diagnostico JWT - Decodificado: " . print_r($decoded, true));
-    } catch (Exception $e) {       
-        error_log("Diagnostico JWT - Excepción capturada: " . $e->getMessage());
-    }
-
     // Generar y devolver el JWT, usando la clave secreta global definida en config.php
     return $jwt_token;
 }
 
 /**
+ * Usada en register.php
  * Genera un JSON Web Token (JWT) para el usuario recién registrado.
  * * @param int $user_id ID del usuario.
  * @param string $username Nombre de usuario.
@@ -87,18 +81,13 @@ function create_user_token(int $user_id, string $username, string $email, string
 
     // Generar y devolver el JWT
     $jwt = \Firebase\JWT\JWT::encode($payload, JWT_SECRET_KEY, 'HS256');
-        // Diagnóstico: Decodificar el token inmediatamente para verificar su contenido
-    try {
-        $decoded = \Firebase\JWT\JWT::decode($jwt, new \Firebase\JWT\Key(JWT_SECRET_KEY, 'HS256'));
-        error_log("Diagnostico JWT - Decodificado: " . print_r($decoded, true));
-    } catch (Exception $e) {       
-        error_log("Diagnostico JWT - Excepción capturada: " . $e->getMessage());
-    }
 
     return $jwt;
 }
 
 /**
+ * Usada en logout.php
+ * 
  * Obtiene el ID del usuario desde el token JWT en la cabecera Authorization.
  *
  * @return int|false Retorna el ID del usuario si el token es válido, o false en caso de error.
@@ -126,35 +115,17 @@ function get_user_id_from_token() {
     
     $jwt = $matches[1];
 
-    try {
-        // 2. Decodificar y validar el token (usa la clave y el algoritmo definido)
-        // La decodificación también verifica automáticamente la expiración (exp) y 'not before' (nbf)
-        $decoded = JWT::decode($jwt, new Key(JWT_SECRET_KEY, 'HS256'));
+    // 2. Decodificar y validar el token (usa la clave y el algoritmo definido)
+    // La decodificación también verifica automáticamente la expiración (exp) y 'not before' (nbf)
+    $decoded = JWT::decode($jwt, new Key(JWT_SECRET_KEY, 'HS256'));
 
 
-        // 3. Retornar el ID del usuario desde el payload (asumiendo que está en $decoded->data->user_id)
-        if (isset($decoded->data->user_id)) {
-            return $decoded->data->user_id;
-        }
-
-        error_log("JWT Error: ID de usuario no encontrado en el payload del token.");
-        return false;
-
-    } catch (ExpiredException $e) {
-        // Token expirado
-        error_log("JWT Error: Token expirado. " . $e->getMessage());
-        return false;
-    } catch (SignatureInvalidException $e) {
-        // Firma inválida (alguien manipuló el token)
-        error_log("JWT Error: Firma inválida. " . $e->getMessage());
-        return false;
-    } catch (BeforeValidException $e) {
-        // Token emitido para ser usado más tarde (nbf)
-        error_log("JWT Error: Token 'Not Before'. " . $e->getMessage());
-        return false;
-    } catch (\Exception $e) {
-        // Otros errores de decodificación o validación
-        error_log("JWT Error: Error general de decodificación. " . $e->getMessage());
-        return false;
+    // 3. Retornar el ID del usuario desde el payload (asumiendo que está en $decoded->data->user_id)
+    if (isset($decoded->data->user_id)) {
+        return $decoded->data->user_id;
     }
+
+    error_log("JWT Error: ID de usuario no encontrado en el payload del token.");
+    return false;
+
 }

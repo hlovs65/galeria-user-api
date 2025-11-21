@@ -53,23 +53,49 @@ try {
         $update_success = update_user_field($conn, $userid_int, $nombre_columna, $valor_columna);
 
         if (!$update_success) {
-            throw new Exception("Error al actualizar el estado del usuario en la base de datos.");
+            error_log("Error al actualizar el estado del usuario con ID $user_id a desconectado.");
+            send_json_error("Error interno del servidor al desconectar el usuario.", 500);
         }
+
         // ----------------------------------------------------
         // PASO 6: Responder con éxito
         // ----------------------------------------------------
             send_json_success("Usuario desconectado exitosamente.", [], 200);
+
     } else {
         // Método no permitido
         send_json_error("Método no permitido", 405);
     }
-} catch (PDOException $e) {
-        error_log("EXCEPCIÓN CRÍTICA DE BD EN LOGOUT (PDO): " . $e->getMessage());
-        send_json_error("Error de servidor: Fallo crítico de base de datos.", 500);
+    
+} catch (InvalidArgumentException $e) {
+        // Actualizacion de estado fallida
+        error_log("Validacion error en logout: Argumento inválido. " . $e->getMessage());
+        send_json_error("Solicitud inválida. Verifique sus datos.", 400);
+} catch (SignatureInvalidException $e) {
+        // Token con firma inválida
+        error_log("JWT Error en logout: Firma inválida. " . $e->getMessage());
+        send_json_error("Token inválido. Sesión inválida o expirada.", 401);
 
-    } catch (Exception $e) {
-        error_log("EXCEPCIÓN CRÍTICA EN LOGOUT: " . $e->getMessage());
-        send_json_error("Error de servidor: Fallo crítico.", 500);
+} catch (BeforeValidException $e) {
+        // Token usado antes de ser válido
+        error_log("JWT Error en logout: Token no válido aún. " . $e->getMessage());
+        send_json_error("Token no válido aún. Sesión inválida o expirada.", 401);
+
+} catch (ExpiredException $e) {
+        // Token expirado
+        error_log("JWT Error en logout: Token expirado. " . $e->getMessage());
+        send_json_error("Token expirado. Sesión inválida o expirada.", 401);
+
+} catch (PDOException $e) {
+        $error_message = "Error de BD (PDO) en logout: " . $e->getMessage() . 
+                     " | SQLSTATE: " . $e->getCode() . 
+                     " | trace: \n " . $e->getTraceAsString();
+        error_log($error_message);
+        send_json_error("Error de servidor: Por favor , intentalo más tarde.", 500);
+
+} catch (Exception $e) {
+        error_log("Error inesperado en logout: " . $e->getMessage());
+        send_json_error("Ocurrio error interno al desconectar.", 500);
 
 } finally {
         if (isset($conn)) { $conn = null; } // Cerrar la conexión a la base de datos

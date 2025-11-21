@@ -56,11 +56,11 @@ try {
         $errores    = []; // Array para almacenar errores
         $estado     = false; // Estado inactivo por defecto
         $correo_verificado = false; // Correo no verificado por defecto
-        $usuario = htmlspecialchars(trim($data['username'] ?? ''));
+        $usuario = (trim($data['username'] ?? ''));
         $contraseña = trim($data['password'] ?? '');
         $confirmaContraseña = trim($data['confirm-password'] ?? '');
-        $email = htmlspecialchars(trim($data['email'] ?? ''));
-        $nombre = htmlspecialchars(trim($data['nombre'] ?? ''));
+        $email = (trim($data['email'] ?? ''));
+        $nombre = (trim($data['nombre'] ?? ''));
 
         if (empty($data['username']) || empty($data['password']) || empty($data['confirm-password']) || empty($data['email']) || empty($data['nombre'])) {
             $errores[] = "Todos los campos son obligatorios.";
@@ -89,13 +89,9 @@ try {
         
         $existing_user = get_user_data_by_conditions($conn, $columna_to_select, $condition);
 
-        if ($existing_user === null) {
-            error_log("Fallo de BD: get_user_data_by_conditions devolvió NULL durante el registro.");
-            send_json_error("Error de servicio. No se pudo verificar la disponibilidad del usuario/correo.", 500);
-        } else if ($existing_user['id'] > 0) {
+        if ($existing_user['id'] > 0) {
             $errores[] = "El nombre de usuario o correo electrónico ya están en uso.";
         }
-
 
         // Si hay errores, los mostramos y detenemos la ejecución
         if (!empty($errores)) {
@@ -122,10 +118,6 @@ try {
         ];
         $insert_result = create_record($conn, $table_name, $data_to_insert);
 
-        if ($insert_result === null) {
-            throw new Exception("Error al insertar el usuario en la base de datos.", 500);
-        }
-
         // ----------------------------------------------------
         // 7. Verificar la dirección de correo electrónico
         // ----------------------------------------------------
@@ -140,40 +132,46 @@ try {
         $verification_message = "Hola,\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{link}\n\nEl enlace expirará en 1 hora.";
 
         // Llamar a la función de verificación de correo
-        $correo_enviado = email_verification($conn, $email, $insert_id, $name_link, $name_table, $verification_subject, $verification_message);
+        email_verification($conn, $email, $insert_id, $name_link, $name_table, $verification_subject, $verification_message);
 
 
-        if ($correo_enviado) {
-            // generar JWT Y enviar respuesta exitosa
-            $role = 'user'; // Rol por defecto para nuevos usuarios
-            $jwt = create_user_token($insert_id, $usuario, $email, $nombre, $role);
-            $mensaje_exito = "¡Registro exitoso! Por favor verifica tu correo electrónico para activar tu cuenta.";
-            $datos_usuario = [
-                "token" => $jwt, // Incluir el token JWT en la respuesta
-                'id' => $insert_id,
-                'username' => $usuario, // Incluir el nombre de usuario
-                'email' => $email, // Incluir el correo electrónico
-                'nombre' => $nombre, // Incluir el nombre completo
-                'role_name' => $role // Incluir el nombre del rol por defecto
-            ];
-            send_json_success($mensaje_exito, $datos_usuario, 201); // Enviar respuesta exitosa con datos del usuario y token JWT
-        } else {
-            send_json_error("Registro exitoso, pero hubo un problema al enviar el correo de verificación. Por favor, inténtalo más tarde.", 500);
-        }
+        // generar JWT Y enviar respuesta exitosa
+        $role = 'user'; // Rol por defecto para nuevos usuarios
+        $jwt = create_user_token($insert_id, $usuario, $email, $nombre, $role);
+        $mensaje_exito = "¡Registro exitoso! Por favor verifica tu correo electrónico para activar tu cuenta.";
+        $datos_usuario = [
+            "token" => $jwt, // Incluir el token JWT en la respuesta
+            'id' => $insert_id,
+            'username' => $usuario, // Incluir el nombre de usuario
+            'email' => $email, // Incluir el correo electrónico
+            'nombre' => $nombre, // Incluir el nombre completo
+            'role_name' => $role // Incluir el nombre del rol por defecto
+        ];
+
+        send_json_success($mensaje_exito, $datos_usuario, 201); // Enviar respuesta exitosa con datos del usuario y token JWT
+
     }else {
         // Método no permitido 
         send_json_error("Método no permitido. Usa POST para registrar un usuario.", 405);
     } 
+} catch (InvalidArgumentException $e) {
+    error_log("Error de argumento inválido: " . $e->getMessage());
+    send_json_error("Error en los datos proporcionados. Por favor, verifica e inténtalo de nuevo.", 400);
+
 } catch (PDOException $e) {
-    error_log("Error de base de datos: " . $e->getMessage());
+    $error_message = "Error de BD (PDO) en register: " . $e->getMessage() . " en " . $e->getFile() . " en la línea " . $e->getLine() . 
+                     " | SQLSTATE: " . $e->getCode() .
+                     " | Trace: \n" . $e->getTraceAsString();
+    error_log($error_message);
     send_json_error("Error de base de datos. Por favor, inténtalo más tarde.", 500);
+
 } catch (Exception $e) {
-    error_log("Error del servidor: " . $e->getMessage());
+    $error_message = "Error inseperado en register: " . $e->getMessage() . " en " . $e->getFile() . " en la línea " . $e->getLine() . 
+                     " | SQLSTATE: " . $e->getCode() .
+                     " | Trace: \n" . $e->getTraceAsString();
+    error_log($error_message);
+    send_json_error("Ocurrio un error inesperado. Por favor, inténtalo más tarde.", 500);
 
-    $http_code = $e->getCode() ?: 500;
-
-    $message_to_user = $http_code === 400 ? $e->getMessage() : "Error del servidor. No se pudo completar el registro.";
-    send_json_error($message_to_user, $http_code);
 } finally {
     // Cerrar la conexión a la base de datos si es necesario
     if (isset($conn)) {$conn = null;}

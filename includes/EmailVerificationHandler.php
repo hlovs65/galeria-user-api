@@ -13,6 +13,14 @@
  * @param string $message Cuerpo del correo electrónico.
  * @return bool  Retorna true si el proceso fue exitoso, false en caso contrario.
  */
+
+require_once 'EmailSenderHandler.php'; // Incluye la función de bajo nivel
+
+// Usamos el 'use' para que las excepciones sean reconocidas en este espacio de nombres
+use PDO;
+USE PDOException;
+use InvalidArgumentException;
+
 function email_verification($conn, $email, $user_id, $name_link, $name_table, $subject, $message) {
 
         // =======================================================
@@ -21,8 +29,7 @@ function email_verification($conn, $email, $user_id, $name_link, $name_table, $s
 
         $allowed_tables = ['email_verifications', 'password_resets'];
         if (!$conn || !$email || empty($user_id) || empty($name_link) || empty($name_table) || empty($subject) || empty($message) || !in_array($name_table, $allowed_tables)) {
-            error_log("Error en la conexión o datos no válidos: ");
-            return false;
+            throw new InvalidArgumentException("Parámetros de entrada no válidos para email_verification.");
         }
 
         // =======================================================
@@ -65,28 +72,19 @@ function email_verification($conn, $email, $user_id, $name_link, $name_table, $s
                 $conn->rollBack(); // Revertir la transacción en caso de error
             }
 
-            error_log("Error de BD (PDO) email_verifications al preparar la consulta de inserción: " . $e->getMessage());
-            return false;
+            // Propagacion: Re-lanzar PDOException para manejo superior con http status code 500
+            throw $e;
         }
 
         // =======================================================
         // PASO 4: Envío del Correo Electrónico
         // =======================================================
 
-        //4.1.- Construir el enlace de verificación
-        $link_url = BASE_URL . $name_link . "?token=" . urlencode($token); // Asegúrate de usar tu URL real
-
-        //4.2.- Reemplazar el marcador de posición en el mensaje con el enlace real
-        $message = str_replace("{link}", $link_url, $message);
-
-        //4.3.- Enviar el correo electrónico
-        if (!send_mail($email, $subject, $message)) {
-            error_log("Error al enviar el correo de verificación: " . $email);
-            return false;
-        }
-
-
-    return true; // Retornar verdadero si todo salió bien
+        //4.1.- Llamar a email_sender para enviar el correo
+       
+        email_sender($email, $token, $name_link, $subject, $message);
+        
+        return true; // Retornar verdadero si todo salió bien
 }
 ?>
 

@@ -77,22 +77,21 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
  * @param string $columnName El campo que se va a actualizar (correo_verificado o estado).
  * @param bool $newValue El nuevo valor del campo (false o true).
  * @return bool True si la actualización fue exitosa, false en caso contrario.
+ * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
 function update_user_field($conn, $userId, $columnName, $newValue) {
     // Asegurarse de que la conexión sea válida
     if (!$conn || !$userId || !$columnName) {
         error_log("update_user_field: Conexión inválida o ID o nombre de columna no proporcionado.");
-        return false;
+        throw new InvalidArgumentException("Conexión inválida o ID o nombre de columna no proporcionado.");
     }
     
     $allowed_columns = ['correo_verificado', 'estado'];
     if (!in_array($columnName, $allowed_columns)) {
         error_log("update_user_field: Columna no permitida.");
-        return false;
+        throw new InvalidArgumentException("Columna no permitida.");
     }
     
-    $stmt = null; // Inicializar la variable de la declaración
-    try {
 
         // Preparar la consulta 
         $sql_query = "UPDATE usuarios SET \"" . $columnName . "\" = :newValue WHERE id = :userId";
@@ -117,12 +116,6 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
             error_log("update_user_field: No se actualizó ningún registro. Verifique el ID del usuario.");
             return false;
         }   
-    } catch (PDOException $e) {
-        error_log("Error de BD (PDO) en update_user_field: " . $e->getMessage());
-        return false;
-    } finally {
-        if (isset($stmt)) { $stmt = null; }
-    }
 }
 
 /**
@@ -131,14 +124,15 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
  * @param PDO $conn La conexión a la base de datos.
  * @param string $columnToSelect El campo/s a seleccionar (ej: 'username, email' o '*').
  * @param array $conditions Un array asociativo con las condiciones de búsqueda (ej: ['id' => 1, 'email' => 'ejemplo@correo.com']).
- * @return array|null| ['id' => 0] Un array con los datos del usuario si se encuentra, o indicador con valor 0 si no existe o null si hay un error.
+ * @return array | ['id' => 0] Un array con los datos del usuario si se encuentra, o indicador con valor 0 si no existe.
+ * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
 function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $conditions): ?array {
 
     // 1.- Validar parametro de entrada
     if (!$conn || empty($columnToSelect) || empty($conditions)) {
         error_log("get_user_data_by_conditions: Conexión inválida o parámetros invalidos.");
-        return null;
+        throw new InvalidArgumentException("Conexión inválida o parámetros invalidos.");
     }
 
     /**
@@ -152,7 +146,7 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
     foreach ($conditions as $column => $value) {
         if (!in_array($column, $allowed_columns)) {
             error_log("get_user_data_by_conditions: Columnas no permitidas para busqueda.");
-            return null;
+            throw new InvalidArgumentException("Columnas no permitidas para busqueda: " . $column);
         }
         $where_clauses[] = "\"{$column}\" = :{$column}"; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
     }
@@ -169,8 +163,8 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
         foreach ($select_columns as $col) {
             $clean_col = trim($col);
             if (!in_array($clean_col, $allowed_columns)) {
-                error_log("get_user_data_by_field: Columnas no permitidas para selección.");
-                return null;
+                error_log("get_user_data_by_conditions: Columnas no permitidas para selección.");
+                throw new InvalidArgumentException("Columnas no permitidas para selección: " . $clean_col);
             }
             $select_array[] = "\"{$clean_col}\""; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
         }
@@ -180,7 +174,6 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
     // 3. Preparar la consulta SQL
     $sql_query = "SELECT " . $select_columns . " FROM usuarios " . $where_string . " LIMIT 1";
 
-    try {
         $stmt = $conn->prepare($sql_query);
 
         // 4.- Bindear los parámetros dinámicamente
@@ -195,10 +188,6 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
         $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
         return $user_data ?: ['id' => 0]; // Retornar indicador con valor 0 si no se recupera ningún usuario
-    } catch (PDOException $e) {
-        error_log("Error de BD (PDO) en get_user_data_by_conditions: " . $e->getMessage());
-        return null;
-    }
 }   
 
 /**
@@ -207,14 +196,15 @@ function get_user_data_by_conditions(PDO $conn, string $columnToSelect, array $c
  * @param PDO $conn La conexión a la base de datos.
  * @param string $tableName El nombre de la tabla donde se insertará (ej: 'usuarios').
  * @param array $data Un array asociativo con los valores de los campos (ej: ['id' => 1, 'email' => 'ejemplo@correo.com']).
- * @return array|null  returna un array con el ID del usuario insertado (ej: ['id' => 1]) si se realiza con éxito, o null en caso de error.
+ * @return array returna un array con el ID del usuario insertado (ej: ['id' => 1]) si se realiza con éxito.
+ * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
 function create_record(PDO $conn, string $tableName, array $data): ?array {
     $tableName = trim($tableName);
     // 1.- Validar parametro de entrada
     if (!$conn || empty($tableName) || empty($data)) {
         error_log("create_record: Conexión inválida o parámetros invalidos.");
-        return null;
+        throw new InvalidArgumentException("Conexión inválida o parámetros invalidos.");
     }
 
     /**
@@ -229,7 +219,7 @@ function create_record(PDO $conn, string $tableName, array $data): ?array {
     foreach ($data as $column => $value) {
         if (!in_array($column, $allowed_columns)) {
             error_log("create_record: Columnas no permitidas para busqueda." . $column);
-            return null;
+            throw new InvalidArgumentException("Columnas no permitidas para busqueda: " . $column);
         }
         $columns_clauses[] = "\"{$column}\""; // PostgreSQL requiere: Usar comillas dobles para nombres de columnas
         $values_clauses[] = ":{$column}"; // Usar placeholders para los valores
@@ -243,7 +233,6 @@ function create_record(PDO $conn, string $tableName, array $data): ?array {
     // 3. Preparar la consulta SQL
     $sql_query = "INSERT INTO " . $tableName . " (" . $columns_string . ") " . $values_string . " RETURNING \"id\"";
 
-    try {
         $stmt = $conn->prepare($sql_query);
 
         // 4.- Bindear los parámetros dinámicamente
@@ -266,98 +255,78 @@ function create_record(PDO $conn, string $tableName, array $data): ?array {
         // 6.- Obtener el resultado
         $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        return $user_data ?: null; // Retornar null si no se recupera id del usuario insertado
-
-    } catch (PDOException $e) {
-        error_log("Error de BD (PDO) en create_record: " . $e->getMessage());
-        return null;
-    }
+        return $user_data ?: ['id' => 0]; // Retornar array prueba de fallos si no se recupera id del usuario insertado
 }
 
 /**
  * Obtiene la fecha de expiración y token de un usuario desde la base de datos.
  *
- * @param mysqli $conn La conexión a la base de datos.
+ * @param PDO $conn La conexión a la base de datos.
  * @param string $token del usuario cuyo estatus se desea consultar.
  * @param string $nombre_tabla El nombre de la tabla donde se almacenan los tokens.
- * @return array|null Un array con 'user_id' si 'token' se encuentra, o null si el token no existe o hay un error.
+ * @return int Un entero con 'user_id' si 'token' se encuentra, o 0 si el token no existe.
+ * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
-function get_user_current_id($conn, $token, $nombre_tabla) {
+function get_user_current_id($conn, $token, $nombre_tabla): int {
     // Asegurarse de que la conexión sea válida
     $allowed_tables = ['email_verifications', 'password_resets'];
+
     if (!$conn || !$token  || empty($nombre_tabla) || !in_array($nombre_tabla, $allowed_tables)) {
-        return null;
+        error_log("get_user_current_id: Conexión inválida o parámetros invalidos.");
+        throw new InvalidArgumentException("Conexión inválida o parámetros invalidos.");
     }
 
     // Preparar la consulta
-    $sql_query = "SELECT `id`, `user_id`, `expires_at` FROM `" . $nombre_tabla . "` WHERE `token` = ? AND `expires_at` > NOW()";
+    $sql_query = "SELECT id, user_id, expires_at FROM " . $nombre_tabla . " WHERE \"token\" = :token AND \"expires_at\" > NOW()";
+    
     // Usar una consulta preparada para evitar inyecciones SQL
     $stmt = $conn->prepare($sql_query);
-    if (!$stmt) {
-        error_log("Error en la preparación de la consulta: " . $conn->error);
-        return null;
-    }
 
     // Vincular el parámetro
-    $stmt->bind_param("s", $token);
+    $stmt->bindValue(':token', $token, PDO::PARAM_STR);
 
     // Ejecutar la consulta
     $stmt->execute();
-    $result = $stmt->get_result();
+
+    // Obtener el resultado
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
     // Verificar si se encontró el token
-    if ($result->num_rows === 1) {
-        $row = $result->fetch_assoc();
-        $stmt->close();
-        return (int)$row['user_id'];
-    } else {
-        $stmt->close();
-        return null;
-    }
+    return (int) ($result['user_id'] ?? 0); // Retornar 0 si no se recupera ningún token
 }
 
 /**
  * Elimina un registro de una tabla basándose en un token o id.
  *
- * @param mysqli $conn La conexión a la base de datos.
+ * @param PDO $conn La conexión a la base de datos.
  * @param string $nombre_tabla El nombre de la tabla donde se encuentra el registro.
  * @param string $columnToSearch El nombre de la columna por la que se busca. (Ejemplo: token, id)
  * @param mixed $searchValue El valor a buscar en la tabla. (Ejemplo: "string", int)
- * @return bool True si la eliminación fue exitosa, false en caso de error o si el token no se encontró.
+ * @return bool True si la eliminación fue exitosa, false si el token no se encontró.
+ * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
-function delete_record_by_field($conn, $nombre_tabla, $columnToSearch, $searchValue) {
+function delete_record_by_field($conn, $nombre_tabla, $columnToSearch, $searchValue): bool {
     // Asegurarse de que la conexión sea válida
     $allowed_tables = ['usuarios', 'email_verifications', 'password_resets'];
     if (!$conn || !$searchValue || empty($nombre_tabla) || empty($columnToSearch) || !in_array($nombre_tabla, $allowed_tables)) {
         error_log("delete_record_by_field: Conexión inválida o parámetros invalidos.");
-        return false;
+        throw new InvalidArgumentException("Conexión inválida o parámetros invalidos.");
     }
 
     // Preparar la consulta
-    $sql_query = "DELETE FROM `" . $nombre_tabla . "` WHERE `" . $columnToSearch . "` = ?";
+    $sql_query = "DELETE FROM " . $nombre_tabla . " WHERE " . "\"{$columnToSearch}\"" . " = :searchValue";
+
     // Usar una consulta preparada para evitar inyecciones SQL
     $stmt = $conn->prepare($sql_query);
-    if (!$stmt) {
-        error_log("delete_record_by_field - Error en la preparación de la consulta: " . $conn->error);
-        return false;
-    }
 
     // Vincular el parámetro
-    $param_type = "s"; // Por defecto string
-    if (is_int($searchValue)) {
-        $param_type = "i";
-    }
+    $stmt->bindValue(':searchValue', $searchValue, is_int($searchValue) ? PDO::PARAM_INT : PDO::PARAM_STR);
     
-    $stmt->bind_param($param_type, $searchValue);
-
     // Ejecutar la consulta
     if ($stmt->execute()) {
-        $stmt->close();
-        return true;
+        return true; // Eliminación exitosa
     } else {
-        error_log("delete_record_by_field - Error al ejecutar la consulta: " . $stmt->error);
-        $stmt->close();
-        return false;
+        return false; // Fallo en la eliminación (token no encontrado)
     }
 }
 

@@ -82,11 +82,7 @@ try {
         $usuario = get_user_data_by_conditions($conn, $columna_to_select, $condicion);
     
         // 7. Verificar si se encontró el usuario
-        if ($usuario === null) {
-
-            send_json_error("Error de servicio. Intentelo más tarde.", 500); // Enviar error 500 si hay un error en la consulta
-
-        } else if (empty($usuario) || $usuario['id'] === 0) {
+        if (empty($usuario) || $usuario['id'] === 0) {
 
             send_json_error("Usuario no registrado, Por favor usar formulario para registrarse!", 404);
 
@@ -107,7 +103,8 @@ try {
 
                    $update_success = update_user_field($conn, $usuario['id'], $nombre_columna, $valor_columna); // Actualizar el estado del usuario a true (conectado)
                     if (!$update_success) {
-                        throw new Exception("Error: No se pudo actualizar el estado del usuario.");
+                        error_log("No se pudo actualizar el estado del usuario con ID: " . $usuario['id']);
+                        send_json_error("Error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
                     }
                 } else if ($current_db_correo_verificado === false) {
                     // Si el correo no está verificado, no permitimos el inicio de sesión
@@ -146,17 +143,23 @@ try {
         send_json_error("Método no permitido. Usa POST para enviar datos." . json_encode($identificador), 405); // Enviar error 405 si no es POST
     }
 
+} catch (InvalidArgumentException $e) {
+    error_log("VALIDACION_ERROR en login: " . $e->getMessage());
+    send_json_error("Solicitud invalida. Verifique sus datos.", 400);
+
 } catch (PDOException $e) {
-    error_log("Error de BD (PDO): " . $e->getMessage());
+    $error_message = "Error de BD (PDO) en login: " . $e->getMessage() . " en " . $e->getFile() . " en la línea " . $e->getLine() .
+                     " | SQLSTATE: " . $e->getCode() .
+                     " | Trace: \n" . $e->getTraceAsString();
+    error_log($error_message);
     send_json_error("Ocurrió un error interno del servidor. Por favor, inténtalo de nuevo más tarde.", 500);
 
 } catch (Exception $e) {
-    error_log("Error inesperado: " . $e->getMessage());
-    send_json_error("Ocurrió un error interno del servidor." . $e->getMessage(), 500);
+    error_log("Error inesperado en login: " . $e->getMessage());
+    send_json_error("Ocurrió un error interno al procesar su solicitud." . $e->getMessage(), 500);
 
 } finally {
     // Asegurarse de cerrar la declaración y la conexión en el bloque finally
-    if (isset($stmt)) { $stmt = null; }
     if (isset($conn)) { $conn = null; }
 }
 ?>
