@@ -39,6 +39,9 @@ define('SMTP_USERNAME', getenv('SMTP_USERNAME'));
 // Contraseña de la cuenta de correo (USA CONTRASEÑA DE APLICACIÓN para Gmail)
 define('SMTP_PASSWORD', getenv('SMTP_PASSWORD')); 
 
+// Tipo de seguridad (tls o ssl)
+define('SMTP_SECURE', getenv('SMTP_SECURE'));
+
 // Correo que aparecerá como remitente
 define('MAIL_FROM_EMAIL', getenv('MAIL_FROM_EMAIL')); 
 

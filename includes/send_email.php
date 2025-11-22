@@ -2,9 +2,6 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require_once '../vendor/autoload.php';
-require_once 'config.php';
-
 function send_mail($to_email, $subject, $message) {
     $mail = new PHPMailer(true); // Habilitar excepciones (true)
 
@@ -14,8 +11,9 @@ function send_mail($to_email, $subject, $message) {
         $mail->SMTPAuth   = true;
         $mail->Username   = SMTP_USERNAME;
         $mail->Password   = SMTP_PASSWORD;
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->SMTPSecure = SMTP_SECURE;
         $mail->Port       = SMTP_PORT;
+
 
         // Remitente
         $mail->setFrom(MAIL_FROM_EMAIL, MAIL_FROM_NAME);
