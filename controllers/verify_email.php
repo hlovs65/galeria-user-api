@@ -39,9 +39,9 @@ try {
     }
 
     // Actualizaemos el campo de verificación de correo en la tabla de usuarios actualizando el valor a true (verificado)
-    update_user_field($conn, $user_id,  "correo_verificado", true);
+    $result_update = update_user_field($conn, $user_id,  "correo_verificado", true);
 
-    if (update_user_field === false) {
+    if ($result_update === false) {
         throw new Exception("Error al actualizar el estado de verificación de correo para el usuario con ID: " . $user_id);
     }
 
