@@ -74,8 +74,8 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
  *
  * @param PDO $conn La conexión a la base de datos.
  * @param int $userId El ID del usuario cuyo estatus se va a modificar.
- * @param string $columnName El campo que se va a actualizar (correo_verificado o estado).
- * @param bool $newValue El nuevo valor del campo (false o true).
+ * @param string $columnName El campo que se va a actualizar (password, correo_verificado o estado).
+ * @param mixed $newValue El nuevo valor del campo (string, false o true).
  * @return bool True si la actualización fue exitosa, false en caso contrario.
  * @throws InvalidArgumentException Si los parámetros de entrada son inválidos.
  */
@@ -86,7 +86,7 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         throw new InvalidArgumentException("Conexión inválida o ID o nombre de columna no proporcionado.");
     }
     
-    $allowed_columns = ['correo_verificado', 'estado'];
+    $allowed_columns = ['password', 'correo_verificado', 'estado'];
     if (!in_array($columnName, $allowed_columns)) {
         error_log("update_user_field: Columna no permitida.");
         throw new InvalidArgumentException("Columna no permitida.");
@@ -100,8 +100,12 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         /*-----------------------------------------------------------*/
         /*-- Bindear los parámetros para la actualización de usuario */
         /*-----------------------------------------------------------*/
-        // 1. Bindear el valor nuevo de estado como booleano
-        $stmt->bindValue(':newValue', $newValue, PDO::PARAM_BOOL);
+        // 1. Bindear el valor nuevo de estado o correo_verificado como booleano o password comostring
+        if ($columnName === 'password') {
+            $stmt->bindValue(':newValue', $newValue, PDO::PARAM_STR);
+        } else {
+            $stmt->bindValue(':newValue', $newValue, PDO::PARAM_BOOL);
+        }
 
         // 2. Bindear el ID del usuario como entero
         $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);

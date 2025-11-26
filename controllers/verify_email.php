@@ -3,7 +3,7 @@
 // verify_email.php- Controlador (archivo para activar la cuenta de usuarios)
 
 // ----------------------------------------------------
-// PASO CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
+// PASO  1: CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
 // ----------------------------------------------------
 require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
 // Cargar variables de entorno
@@ -19,7 +19,7 @@ require_once '../includes/functions.php'; // Incluir las funciones de manejo de 
 require_once '../includes/db_connection.php'; // Incluir el archivo de conexión a la base de datos
 
 try {
-    // *** Validación para verificar si el token existe o esta vacio***
+    // 2. *** Validación para verificar si el token existe o esta vacio***
     if (!isset($_GET["token"])  or empty($_GET["token"])) {
         // Token no proporcionado
         header ("location: " . BASE_URL_FRONTEND . "/resend_token?status=missing_token"); 
