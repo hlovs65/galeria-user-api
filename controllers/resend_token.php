@@ -61,14 +61,18 @@ try {
         $user_data_from_db = get_user_data_by_conditions($conn, $columna_to_select, $condition);
 
         if ($user_data_from_db['id'] === 0) { // Usuario no encontrado
-            send_json_response(200, [
-                "status" => "info",
-                "message" => "El correo electrónico no está registrado."
-            ]);
-        } else if ($user_data_from_db['correo_verificado'] === true) { // Correo verificado
+            sleep(1); // Retardo para prevenir ataques de enumeración de usuarios
+            // Responder con un mensaje genérico de éxito para no revelar si el correo está registrado o no
+            $mensaje_ambiguo = "Si el correo electrónico está registrado, recibirás un enlace de activación.";
             send_json_response(200, [
                 "status" => "success",
-                "message" => "Tu correo electrónico ya había sido verificado. Ya no es necesario volver a activar tu cuenta.",
+                "message" => $mensaje_ambiguo
+            ]);
+        } else if ($user_data_from_db['correo_verificado'] === true) { // Correo verificado
+            // Se usa info para que el frontend no muestre un mensaje de exito real.
+            send_json_response(200, [
+                "status" => "info",
+                "message" => "Tu cuenta ya esta verificada. No es necesario reenviar el enlace.",
                 "isverified" => true
             ]);
         }
