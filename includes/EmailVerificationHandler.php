@@ -16,11 +16,6 @@
 
 require_once 'EmailSenderHandler.php'; // Incluye la función de bajo nivel
 
-// Usamos el 'use' para que las excepciones sean reconocidas en este espacio de nombres
-use PDO;
-USE PDOException;
-use InvalidArgumentException;
-
 function email_verification($conn, $email, $user_id, $name_link, $name_table, $subject, $message) {
 
         // =======================================================

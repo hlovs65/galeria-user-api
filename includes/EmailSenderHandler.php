@@ -8,7 +8,7 @@ function email_sender($email, $token, $name_link, $subject, $message): void {
 
     // 1. Construir el enlace
 
-    $link_url = BASE_URL . $name_link . "?token=" . urlencode($token);
+    $link_url = $name_link . "?token=" . urlencode($token);
     $message = str_replace("{link}", $link_url, $message);
     
     // 2. Enviar y Envolver la Excepción (lo que discutimos)

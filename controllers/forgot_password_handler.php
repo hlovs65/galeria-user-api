@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // PASO 5: Enviar el correo de verificación
         // ----------------------------------------------------
         $user_id = $user_id_from_db['id'];
-        $name_link = "/ResetPasswordPage"; // Nombre del enlace para restablecer la contraseña
+        $name_link = BASE_URL_FRONTEND . "/reset-password"; // Nombre del enlace para restablecer la contraseña en el frontend
         $name_table = "password_resets"; // Nombre de la tabla para los tokens de restablecimiento de contraseña
         $subject = "Restablecer tu contraseña";
         $message = "Hola,\n\nPara restablecer tu contraseña, haz clic en el siguiente enlace:\n\n{link}\n\nSi no solicitaste un cambio de contraseña, ignora este correo.\n\nEl enlace expirará en 1 hora.";
