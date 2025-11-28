@@ -90,10 +90,6 @@ try {
         // PASO 6: Redirigir al usuario al login con mensaje de éxito   
         // ----------------------------------------------------
         send_json_success("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.", [], 200);
-        //inicia debug
-        print_r("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");
-        exit;
-        //fin debug  
 
     } else {
         // Si la solicitud no es POST, redirigir al formulario de restablecimiento de contraseña
