@@ -27,4 +27,3 @@ function email_sender($email, $token, $name_link, $subject, $message): void {
 
     }
 }
-?>

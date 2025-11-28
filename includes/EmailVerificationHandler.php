@@ -81,5 +81,3 @@ function email_verification($conn, $email, $user_id, $name_link, $name_table, $s
         
         return true; // Retornar verdadero si todo salió bien
 }
-?>
-

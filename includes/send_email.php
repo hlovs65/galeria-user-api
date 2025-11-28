@@ -31,4 +31,3 @@ function send_mail($to_email, $subject, $message) {
 
         return true;
 }
-?>
