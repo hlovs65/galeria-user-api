@@ -91,7 +91,8 @@ try {
         // ----------------------------------------------------
         send_json_success("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.", [], 200);
         //inicia debug
-        exit();
+        print_r("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.");
+        exit;
         //fin debug  
 
     } else {
