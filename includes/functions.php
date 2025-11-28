@@ -63,6 +63,10 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
     echo '<pre>'; // Recomendado para mejor formato en navegadores
     print_r($response); // Muestra la estructura del array final
     echo '</pre>';
+    // 🔴 AGREGAR ESTAS DOS LÍNEAS 🔴
+    // Estas líneas fuerzan el envío inmediato de todo lo que se ha impreso
+    ob_end_flush(); 
+    flush();
     // ----------------------------------------------
 
 

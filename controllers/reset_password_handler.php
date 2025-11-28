@@ -89,6 +89,7 @@ try {
         // ----------------------------------------------------
         // PASO 6: Redirigir al usuario al login con mensaje de éxito   
         // ----------------------------------------------------
+        echo "--- LLEGO AQUÍ ---";
         send_json_success("Contraseña actualizada correctamente. Ya puedes iniciar sesión con tu nueva contraseña.", [], 200);
 
     } else {
