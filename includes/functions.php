@@ -59,22 +59,11 @@ function send_json_success(string $message, array $data = [], int $http_code = 2
     // 4. Fusiona los datos adicionales (como el token)
     $response = array_merge($response, $data);
     
-    // --- LÍNEA A AÑADIR PARA DEPURACIÓN (DEBUG) ---
-    echo '<pre>'; // Recomendado para mejor formato en navegadores
-    print_r($response); // Muestra la estructura del array final
-    echo '</pre>';
-    // 🔴 AGREGAR ESTAS DOS LÍNEAS 🔴
-    // Estas líneas fuerzan el envío inmediato de todo lo que se ha impreso
-    ob_end_flush(); 
-    flush();
-    // ----------------------------------------------
-
-
     // 5. Imprime la respuesta JSON
-    //echo json_encode($response);
+    echo json_encode($response);
 
     // 6. Detiene el script
-    //exit;
+    exit;
 }
 
 // Puedes añadir esta función a tu archivo 'functions.php' o a otro archivo de utilidades de base de datos.
