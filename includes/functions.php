@@ -110,11 +110,22 @@ function update_user_field($conn, $userId, $columnName, $newValue) {
         // 2. Bindear el ID del usuario como entero
         $stmt->bindValue(':userId', $userId, PDO::PARAM_INT);
 
+        // INCIO DEBUG
         // Ejecutar la consulta. 
-        $stmt->execute();
+        //$stmt->execute();
+        // FIN DEBUG
+
+        // INCIO DEBUG
+        $EXECUTION_SUCCESS = $stmt->execute();
+        if ($EXECUTION_SUCCESS === false) {
+            $errorInfo = $stmt->errorInfo();
+            error_log("update_user_field: Error al ejecutar la consulta SQL. Código de error: " . $errorInfo[0] . ", Mensaje: " . $errorInfo[2]);
+        }
+        // FIN DEBUG
 
         // Verificar si se actualizó algún registro
         if ($stmt->rowCount() > 0) {
+            error_log("update_user_field: Registro actualizado correctamente para el usuario con ID: " . $userId);
             return true;
         } else {
             error_log("update_user_field: No se actualizó ningún registro. Verifique el ID del usuario.");

@@ -67,6 +67,12 @@ try {
         if (empty($errores)) {
             $contraseña_hash = password_hash($contraseña, PASSWORD_DEFAULT);
         }
+
+        // INICIO DEBUG
+        error_log("DEBUG: Token recibido: " . $token);
+        error_log("DEBUG: nUEVA Contraseña (sin hash): " . $contraseña);
+        // FIN DEBUG
+
         // ----------------------------------------------------
         // PASO 3: Obtener el ID del usuario, con el token que tiene relacionado, desde la base de datos
         // ----------------------------------------------------
@@ -77,20 +83,38 @@ try {
             send_json_error("Token no válido o expirado. Solicita uno nuevo o cancela.", 400);
         }
 
+        // INICIO DEBUG
+        error_log("DEBUG: ID de usuario obtenido de la DB: " . $user_id_from_db);
+        // FIN DEBUG
+
         // ----------------------------------------------------
         // PASO 4: Preparar y ejecutar la consulta SQL para actualizar la contraseña
         // ----------------------------------------------------
         $result_update = update_user_field($conn, $user_id_from_db, "password", $contraseña_hash);
 
+        // INICIO DEBUG
+        error_log("DEBUG: Resultado de la actualización de la contraseña: " . var_export($result_update, true));
+        // FIN DEBUG
+
         if ($result_update === false) {
             throw new Exception("Error al actualizar la contraseña para el usuario con ID: " . $user_id_from_db);
         }
+
         
         // ----------------------------------------------------
         // PASO 5: Borrar tokens antiguos para el mismo usuario
         // ----------------------------------------------------
         // El borrado puede fallar sin ser un error crítico, así que no detenemos la ejecución.
+        
+        // INICIO DEBUG
+        error_log("DEBUG: Borrando tokens antiguos para el usuario con ID: " . $user_id_from_db);
+        // FIN DEBUG
+
         delete_record_by_field($conn, $nombre_tabla, "user_id", $user_id_from_db);
+
+        // INICIO DEBUG
+        error_log("DEBUG: Tokens antiguos borrados para el usuario con ID: " . $user_id_from_db);
+        // FIN DEBUG
 
 
         // ----------------------------------------------------
