@@ -2,6 +2,13 @@
 
 // reset_password_handler.php - Controlador para manejar el restablecimiento de contraseña
 
+ob_start(); // Iniciar el almacenamiento en búfer de salida
+
+// ----------------------------------------------------
+// 1. Configuración Inicial y CORS (Necesario para React)
+// ----------------------------------------------------
+require_once __DIR__ . '/../config/cors_setup.php';
+
 // ----------------------------------------------------
 // PASO 1: CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
 // ----------------------------------------------------
