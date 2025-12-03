@@ -363,8 +363,13 @@ function validatePassword($contraseña) {
     }
 
     // Validar que la contraseña contenga al menos un carácter especial
-    if (!preg_match('/[!@#$%^&*(),.?":{}|<>]/', $contraseña)) {
-        $errores[] = "La contraseña debe contener al menos un carácter especial.";
+    // 1. Definir los caracteres especiales permitidos
+    $caracteres_permitidos = '!@#$%^&*(),.?":{}|<>-\\+_=';
+    // 2. Escapar los caracteres especiales para usarlos en la expresión regular
+    $pattern_escaped = preg_quote($caracteres_permitidos, '/'); // Se usa '/' como delimitador
+    // 3. Insertar el patern escapado dentro de los corchetes de la expresión regular
+    if (!preg_match('/[' . $pattern_escaped . ']/', $contraseña)) {
+        $errores[] = "La contraseña debe contener al menos un carácter especial: " . $caracteres_permitidos . ".";
     }
 
     return $errores;
