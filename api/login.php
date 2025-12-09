@@ -13,7 +13,6 @@ require_once __DIR__ . '/../config/cors_setup.php';
 // ----------------------------------------------------
 // PASO CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
 // ----------------------------------------------------
-require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 

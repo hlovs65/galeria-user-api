@@ -9,13 +9,8 @@ ob_start(); // Iniciar el almacenamiento en búfer de salida
 require_once __DIR__ . '/../config/cors_setup.php';
 
 // ----------------------------------------------------
-// PASO 2: Incluir las funciones de mensajes JWT. Conexion a la base de datos y otras utilidades.
+// PASO 2: Incluir carga de variables de entorno y constantes definidas.
 // ----------------------------------------------------
-require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
-
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
 
 require_once '../includes/config.php'; // Incluir archivo de configuración
 

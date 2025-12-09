@@ -9,16 +9,11 @@ require_once __DIR__ . '/../config/cors_setup.php';
 // ----------------------------------------------------
 // PASO 3: Incluir las funciones de mensajes JWT. Conexion a la base de datos y otras utilidades.
 // ----------------------------------------------------
-require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\ExpiredException;
 use Firebase\JWT\BeforeValidException;
 use Firebase\JWT\SignatureInvalidException;
-
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
 
 require_once '../includes/config.php'; // Incluir la configuración (base de datos, JWT_SECRET_KEY, etc.)
 
