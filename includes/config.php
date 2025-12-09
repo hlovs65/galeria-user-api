@@ -1,8 +1,20 @@
 <?php
-// ===========================================
-// Configuración de la Carga de Variables de Entorno
-// ===========================================
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..'); // Apunta a la raíz del proyecto (user-api)
+// config_init.php
+// Este archivo maneja la carga de variables de entorno y las constantes globales.
+
+require __DIR__ . '/../vendor/autoload.php'; // Asegura que Dotenv esté cargado
+
+use Dotenv\Dotenv;
+
+// Lógica de Carga de Variables (El patrón de sobreescritura que discutimos)
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..'); // Apunta a la raiz del proyecto
+
+// 1. Cargar .env.local para desarrollo (si existe, anula valores de produccion)
+if (file_exists(__DIR__ . '/../.env.local')) {
+    $dotenv->load(); 
+}
+
+// 2. Cargar .env principal y variables de sistema (inyecciones de Render)
 $dotenv->safeLoad(); // Carga las variables desde el archivo .env si existe
 
 // ===========================================

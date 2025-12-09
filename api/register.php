@@ -11,12 +11,8 @@ require_once __DIR__ . '/../config/cors_setup.php';
 // ----------------------------------------------------
 // PASO CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
 // ----------------------------------------------------
-require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
 
 require_once "../includes/config.php"; //  Incluir la configuración (base de datos, JWT_SECRET_KEY, etc.)
 

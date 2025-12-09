@@ -12,10 +12,6 @@ require_once __DIR__ . '/../config/cors_setup.php';
 // ----------------------------------------------------
 // PASO 1: CLAVE: INCLUSIÓN DE COMPOSER Y CONFIGURACIÓN
 // ----------------------------------------------------
-require_once '../vendor/autoload.php'; // Incluir Composer autoload si es necesario
-// Cargar variables de entorno
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->safeLoad();
 
 require_once '../includes/config.php'; // Incluir el archivo de configuración
 
