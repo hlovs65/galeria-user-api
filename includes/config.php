@@ -63,3 +63,12 @@ define('MAIL_FROM_NAME', getenv('MAIL_FROM_NAME') ?: $_ENV['MAIL_FROM_NAME']);
 // URL base acceso frontend despues de envio de email
 // ===========================================
 define('BASE_URL_FRONTEND', getenv('BASE_URL_FRONTEND') ?: $_ENV['BASE_URL_FRONTEND']);
+// Define una constante auxiliar para la URL de la API local.
+// SI NO ES DESARROLLO (producción), usa la URL de Producción (BASE_URL).
+// Esto hace que la URL para enlaces sea consistente en producción.
+if ($is_development) {
+    define('BASE_URL_PARA_ENLACES_INTERNOS', getenv('BASE_URL_API_LOCAL') ?: $_ENV['BASE_URL_API_LOCAL']);
+} else {
+    // En producción, el enlace interno es la propia BASE_URL de la API
+    define('BASE_URL_PARA_ENLACES_INTERNOS', BASE_URL); 
+}

@@ -122,7 +122,7 @@ try {
         $insert_id = $insert_result['id']; 
             
         // Preparar los datos para la verificación de correo
-        $name_link = BASE_URL . "controllers/verify_email.php"; // Nombre del enlace para la verificación de correo con la URL del backend
+        $name_link = BASE_URL_PARA_ENLACES_INTERNOS . "controllers/verify_email.php"; // Nombre del enlace para la verificación de correo con la URL del backend
         $name_table = "email_verifications"; // Nombre de la tabla para la verificación de correo
         $verification_subject = "Activar cuenta";
         $verification_message = "Hola,\n\nPara activar tu cuenta, haz clic en el siguiente enlace:\n\n{link}\n\nEl enlace expirará en 1 hora.";
