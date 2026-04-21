@@ -30,6 +30,12 @@ define('DB_PORT', getenv('DB_PORT') ?: $_ENV['DB_PORT']);
 // Configuración de la URL base
 // ===========================================
 define('BASE_URL', getenv('BASE_URL') ?: $_ENV['BASE_URL']);
+// ===========================================
+// Configuración de SSL para Azure
+// ===========================================
+// Si no existe en el .env, por defecto será 'disable' (para tu local)
+// Pero en Azure debe ser 'require'
+define('DB_SSL_MODE', getenv('DB_SSL_MODE') ?: $_ENV['DB_SSL_MODE']);
 
 // ===========================================
 // Configuración de la Clave Secreta para JWT

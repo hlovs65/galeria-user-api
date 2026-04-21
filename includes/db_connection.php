@@ -5,7 +5,7 @@
 
 try {
     //Usar PDO (PHP Data Objects)
-    $dsn = 'pgsql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';port=' . DB_PORT;
+    $dsn = 'pgsql:host=' . DB_SERVER . ';dbname=' . DB_NAME . ';port=' . DB_PORT . ';sslmode=' . DB_SSL_MODE;
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Lanzar excepciones en errores
@@ -17,6 +17,14 @@ try {
 
 // 2. Verificar la conexión
 } catch (PDOException $e) {
+    // ESTO ES PARA DEPURAR AHORA MISMO:
+    echo "\n--- DETALLE DEL ERROR ---\n";
+    echo $e->getMessage() . "\n";
+    echo "-------------------------\n";
+
+    $errores = "Error de conexion a la base de datos (PDO): ". $e->getMessage();
+    error_log($errores);
+    send_json_error("Error técnico: " . $e->getMessage(), 500);
     //Captura la excepcion lanzada por PDO
     $errores = "Error de conexion a la base de datos (PDO): ". $e->getMessage();
     error_log($errores);
